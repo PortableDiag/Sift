@@ -343,8 +343,13 @@ public class MainActivity extends AppCompatActivity implements BrowserHost {
         int insertAt = tabs.count();
         tabs.add(insertAt, new Tab(fs, path));
         adapter.notifyItemInserted(insertAt);
-        pager.setCurrentItem(insertAt, true);
-        pager.post(this::rebuildStrip);
+        // Switch to the new tab only after ViewPager2 has processed the insertion.
+        // Doing it synchronously no-ops when we're opening from the phantom home page
+        // (whose index equals insertAt), leaving focus stuck on "new tab".
+        pager.post(() -> {
+            pager.setCurrentItem(insertAt, true);
+            rebuildStrip();
+        });
     }
 
     @Override public void onTabUpdated(int tabId) { rebuildStrip(); }
