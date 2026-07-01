@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths>
+    <!-- Primary shared storage (/storage/emulated/0). -->
+    <external-path name="external" path="."/>
+    <!-- App caches: where remote/root files are staged before sharing/opening. -->
+    <cache-path name="cache" path="."/>
+    <files-path name="files" path="."/>
+    <!-- All mounted volumes (primary + removable SD) so files can be shared from
+         any of them, without exposing app-private /data or system paths. -->
+    <root-path name="volumes" path="/storage/"/>
+</paths>

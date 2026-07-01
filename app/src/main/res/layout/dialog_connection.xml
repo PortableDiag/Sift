@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingStart="24dp"
+    android:paddingEnd="24dp"
+    android:paddingTop="8dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <RadioGroup
+            android:id="@+id/rgType"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+            <RadioButton android:id="@+id/rbSmb" android:layout_width="wrap_content"
+                android:layout_height="wrap_content" android:text="SMB" android:checked="true"/>
+            <RadioButton android:id="@+id/rbSftp" android:layout_width="wrap_content"
+                android:layout_height="wrap_content" android:layout_marginStart="20dp" android:text="SFTP"/>
+        </RadioGroup>
+
+        <EditText android:id="@+id/etName" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:hint="Display name (optional)"
+            android:inputType="text" android:layout_marginTop="6dp"/>
+
+        <EditText android:id="@+id/etHost" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:hint="Host or IP"
+            android:inputType="textUri" android:layout_marginTop="6dp"/>
+
+        <EditText android:id="@+id/etPort" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:hint="Port"
+            android:inputType="number" android:layout_marginTop="6dp"/>
+
+        <LinearLayout android:id="@+id/rowShare" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:orientation="vertical">
+            <EditText android:id="@+id/etShare" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:hint="Share (e.g. NAS) — optional"
+                android:inputType="text" android:layout_marginTop="6dp"/>
+        </LinearLayout>
+
+        <LinearLayout android:id="@+id/rowPath" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:orientation="vertical" android:visibility="gone">
+            <EditText android:id="@+id/etPath" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:hint="Start path (e.g. /home/user) — optional"
+                android:inputType="textUri" android:layout_marginTop="6dp"/>
+        </LinearLayout>
+
+        <EditText android:id="@+id/etUser" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:hint="Username (blank = guest)"
+            android:inputType="text" android:layout_marginTop="6dp"/>
+
+        <EditText android:id="@+id/etPass" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:hint="Password"
+            android:inputType="textPassword" android:layout_marginTop="6dp"/>
+    </LinearLayout>
+</ScrollView>

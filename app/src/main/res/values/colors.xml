@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="primary">#2D6BFF</color>
+    <color name="on_primary">#FFFFFF</color>
+    <color name="primary_container">#DBE4FF</color>
+    <color name="on_primary_container">#001A41</color>
+    <color name="secondary">#565E71</color>
+    <color name="background">#F6F8FC</color>
+    <color name="surface">#FFFFFF</color>
+    <color name="surface_variant">#E6E9F0</color>
+    <color name="surface_container">#EEF1F7</color>
+    <color name="on_surface">#1A1B20</color>
+    <color name="on_surface_variant">#44474F</color>
+    <color name="outline">#C4C6D0</color>
+
+    <color name="crumb_active">#2D6BFF</color>
+    <color name="crumb_inactive">#8A9099</color>
+
+    <!-- Terminal (90s hacker green) accent — light variant -->
+    <color name="term_primary">#0A8F3C</color>
+    <color name="term_on_primary">#FFFFFF</color>
+    <color name="term_primary_container">#B6F0C6</color>
+    <color name="term_on_primary_container">#00210C</color>
+    <color name="term_secondary">#3C6B4C</color>
+    <color name="term_background">#F1FBF3</color>
+    <color name="term_surface">#FFFFFF</color>
+    <color name="term_surface_variant">#DBEFE0</color>
+    <color name="term_surface_container">#E8F6EC</color>
+    <color name="term_on_surface">#091F12</color>
+    <color name="term_on_surface_variant">#2E5E3F</color>
+    <color name="term_outline">#AFCBB6</color>
+</resources>
