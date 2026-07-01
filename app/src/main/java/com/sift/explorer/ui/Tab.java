@@ -15,12 +15,16 @@ public class Tab {
 
     private static int SEQ = 1;
 
+    /** Sort mode/direction new tabs open with; seeded from saved prefs at app startup. */
+    public static int defaultSort = SORT_NAME;
+    public static boolean defaultSortDesc = false;
+
     public final int id;
     public FileSystem fs;
     public String path;
     public final Deque<String> back = new ArrayDeque<>();
-    public int sort = SORT_NAME;
-    public boolean sortDesc = false;
+    public int sort = defaultSort;
+    public boolean sortDesc = defaultSortDesc;
     public boolean grid = false;
     public boolean showHidden = false;
     public boolean foldersFirst = true;

@@ -695,10 +695,17 @@ public class BrowserFragment extends Fragment implements FileAdapter.Listener {
                 .setTitle("Sort by")
                 .setSingleChoiceItems(opts, tab.sort, (d, which) -> tab.sort = which)
                 .setNeutralButton(tab.sortDesc ? "Ascending" : "Descending", (d, w) -> {
-                    tab.sortDesc = !tab.sortDesc; applyFilterAndSort();
+                    tab.sortDesc = !tab.sortDesc; rememberSort(); applyFilterAndSort();
                 })
-                .setPositiveButton("Apply", (d, w) -> applyFilterAndSort())
+                .setPositiveButton("Apply", (d, w) -> { rememberSort(); applyFilterAndSort(); })
                 .show();
+    }
+
+    /** Persist the tab's sort as the last-set choice so new tabs and future launches use it. */
+    private void rememberSort() {
+        Tab.defaultSort = tab.sort;
+        Tab.defaultSortDesc = tab.sortDesc;
+        com.sift.explorer.util.ThemePrefs.setSort(requireContext(), tab.sort, tab.sortDesc);
     }
 
     // ---- helpers ---------------------------------------------------------

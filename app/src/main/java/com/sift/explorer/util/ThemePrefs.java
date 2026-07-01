@@ -15,6 +15,8 @@ public class ThemePrefs {
     private static final String K_NIGHT = "night";
     private static final String K_ACCENT = "accent";
     private static final String K_RECYCLE = "recycle_bin";
+    private static final String K_SORT = "sort_mode";
+    private static final String K_SORT_DESC = "sort_desc";
 
     public static final String BLUE = "blue";
     public static final String GREEN = "green";
@@ -62,6 +64,19 @@ public class ThemePrefs {
 
     public static void setRecycleBin(Context c, boolean on) {
         p(c).edit().putBoolean(K_RECYCLE, on).apply();
+    }
+
+    // Last sort mode/direction the user chose; new tabs open with it. Name, ascending by default.
+    public static int sortMode(Context c) {
+        return p(c).getInt(K_SORT, 0); // Tab.SORT_NAME
+    }
+
+    public static boolean sortDesc(Context c) {
+        return p(c).getBoolean(K_SORT_DESC, false);
+    }
+
+    public static void setSort(Context c, int mode, boolean desc) {
+        p(c).edit().putInt(K_SORT, mode).putBoolean(K_SORT_DESC, desc).apply();
     }
 
     /** Resolve a theme color attribute (e.g. colorPrimary) to an ARGB int. */
