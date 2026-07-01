@@ -64,6 +64,9 @@ public class OpenWith {
     }
 
     private static void launch(Activity act, File file, String mime, ComponentName cn) {
+        // Installing an APK needs the user to allow Sift as an install source (Android 8+).
+        // Without it the package installer just silently no-ops, so ask first.
+        if (isApk(mime) && !canInstallApks(act)) { promptInstallPermission(act); return; }
         try {
             Intent i = baseIntent(uriFor(act, file), mime);
             i.setComponent(cn);
@@ -71,6 +74,34 @@ public class OpenWith {
         } catch (Exception e) {
             Toast.makeText(act, "Couldn’t open with that app", Toast.LENGTH_SHORT).show();
         }
+    }
+
+    private static boolean isApk(String mime) {
+        return "application/vnd.android.package-archive".equalsIgnoreCase(mime);
+    }
+
+    private static boolean canInstallApks(Context ctx) {
+        if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.O) return true;
+        return ctx.getPackageManager().canRequestPackageInstalls();
+    }
+
+    private static void promptInstallPermission(Activity act) {
+        new MaterialAlertDialogBuilder(act)
+                .setTitle("Allow installing apps")
+                .setMessage("To install APKs, allow Sift to install unknown apps. You’ll be taken to the "
+                        + "system setting — enable it, then tap the APK again.")
+                .setNegativeButton("Cancel", null)
+                .setPositiveButton("Open settings", (d, w) -> {
+                    try {
+                        act.startActivity(new Intent(
+                                android.provider.Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,
+                                Uri.parse("package:" + act.getPackageName())));
+                    } catch (Exception e) {
+                        act.startActivity(new Intent(
+                                android.provider.Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES));
+                    }
+                })
+                .show();
     }
 
     private static void showPicker(Activity act, File file, String mime, String typeKey,
