@@ -12,7 +12,7 @@ import com.sift.explorer.R;
 import com.sift.explorer.fs.Connection;
 import com.sift.explorer.fs.ConnectionStore;
 
-/** Add / edit an SMB or SFTP connection. */
+/** Add / edit a network connection (SMB, SFTP, FTP or FTPS). */
 public class ConnectionEditorDialog {
 
     public static void show(Context ctx, Connection existing, ConnectionStore store, Runnable onSaved) {
@@ -32,13 +32,14 @@ public class ConnectionEditorDialog {
         if (existing == null) c.type = Connection.TYPE_SMB;
 
         Runnable applyType = () -> {
-            boolean smb = type.getCheckedRadioButtonId() == R.id.rbSmb;
+            int id = type.getCheckedRadioButtonId();
+            boolean smb = id == R.id.rbSmb;
             shareRow.setVisibility(smb ? View.VISIBLE : View.GONE);
             pathRow.setVisibility(smb ? View.GONE : View.VISIBLE);
-            if (port.getText().toString().trim().isEmpty()) port.setHint(smb ? "445" : "22");
+            if (port.getText().toString().trim().isEmpty()) port.setHint(defaultPortHint(id));
         };
         type.setOnCheckedChangeListener((g, id) -> applyType.run());
-        type.check(Connection.TYPE_SFTP.equals(c.type) ? R.id.rbSftp : R.id.rbSmb);
+        type.check(radioFor(c.type));
 
         if (existing != null) {
             name.setText(nv(c.name));
@@ -58,7 +59,7 @@ public class ConnectionEditorDialog {
                 .setPositiveButton("Save", (d, w) -> {
                     String h = host.getText().toString().trim();
                     if (h.isEmpty()) { Toast.makeText(ctx, "Host is required", Toast.LENGTH_SHORT).show(); return; }
-                    c.type = type.getCheckedRadioButtonId() == R.id.rbSftp ? Connection.TYPE_SFTP : Connection.TYPE_SMB;
+                    c.type = typeFor(type.getCheckedRadioButtonId());
                     c.name = name.getText().toString().trim();
                     c.host = h;
                     String pt = port.getText().toString().trim();
@@ -71,6 +72,26 @@ public class ConnectionEditorDialog {
                     if (onSaved != null) onSaved.run();
                 })
                 .show();
+    }
+
+    private static int radioFor(String type) {
+        if (Connection.TYPE_SFTP.equals(type)) return R.id.rbSftp;
+        if (Connection.TYPE_FTP.equals(type)) return R.id.rbFtp;
+        if (Connection.TYPE_FTPS.equals(type)) return R.id.rbFtps;
+        return R.id.rbSmb;
+    }
+
+    private static String typeFor(int radioId) {
+        if (radioId == R.id.rbSftp) return Connection.TYPE_SFTP;
+        if (radioId == R.id.rbFtp) return Connection.TYPE_FTP;
+        if (radioId == R.id.rbFtps) return Connection.TYPE_FTPS;
+        return Connection.TYPE_SMB;
+    }
+
+    private static String defaultPortHint(int radioId) {
+        if (radioId == R.id.rbSmb) return "445";
+        if (radioId == R.id.rbSftp) return "22";
+        return "21"; // ftp / ftps
     }
 
     private static String nv(String s) { return s == null ? "" : s; }

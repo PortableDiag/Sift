@@ -5,11 +5,19 @@ import org.json.JSONObject;
 
 import java.util.UUID;
 
-/** A saved network location (SMB share or SFTP server). */
+/** A saved network location (SMB share, SFTP server, or FTP/FTPS server). */
 public class Connection {
 
     public static final String TYPE_SMB = "smb";
     public static final String TYPE_SFTP = "sftp";
+    public static final String TYPE_FTP = "ftp";
+    public static final String TYPE_FTPS = "ftps";
+
+    /** True for any remote backend backed by a saved connection. */
+    public static boolean isNetwork(String type) {
+        return TYPE_SMB.equals(type) || TYPE_SFTP.equals(type)
+                || TYPE_FTP.equals(type) || TYPE_FTPS.equals(type);
+    }
 
     public String id;
     public String type;
@@ -28,7 +36,9 @@ public class Connection {
     }
 
     public int defaultPort() {
-        return TYPE_SFTP.equals(type) ? 22 : 445;
+        if (TYPE_SFTP.equals(type)) return 22;
+        if (TYPE_FTP.equals(type) || TYPE_FTPS.equals(type)) return 21;
+        return 445;
     }
 
     public int effectivePort() {

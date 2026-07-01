@@ -19,6 +19,8 @@ All behind one uniform engine, so every feature works everywhere:
 - **Root (`/`)** — whole-device access via `su` (rooted devices only).
 - **SMB / CIFS** — SMB2/3 via jcifs-ng. Guest or credentialed.
 - **SFTP / SSH** — via JSch. Password or private-key auth.
+- **FTP / FTPS** — via Apache Commons Net. Anonymous or credentialed;
+  FTPS is explicit TLS (data channel encrypted, accepts self-signed certs).
 
 Saved connections are stored in **AES-256 EncryptedSharedPreferences** — your
 credentials are never written to disk in plaintext.
@@ -50,5 +52,6 @@ Signing is read from `keystore.properties` (self-signed key `sift-release.jks`
 is included for sideload testing).
 
 - `minSdk` 26, `targetSdk` 35, package `com.sift.explorer`.
-- Libraries: jcifs-ng (SMB), JSch/mwiede (SFTP), Glide (thumbnails),
-  AndroidX Security (encrypted credential store), Material 3, ViewPager2.
+- Libraries: jcifs-ng (SMB), JSch/mwiede (SFTP), Commons Net (FTP/FTPS),
+  Glide (thumbnails), AndroidX Security (encrypted credential store),
+  Material 3, ViewPager2.

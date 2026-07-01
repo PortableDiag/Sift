@@ -11,16 +11,25 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
-        <RadioGroup
-            android:id="@+id/rgType"
-            android:layout_width="wrap_content"
+        <HorizontalScrollView
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal">
-            <RadioButton android:id="@+id/rbSmb" android:layout_width="wrap_content"
-                android:layout_height="wrap_content" android:text="SMB" android:checked="true"/>
-            <RadioButton android:id="@+id/rbSftp" android:layout_width="wrap_content"
-                android:layout_height="wrap_content" android:layout_marginStart="20dp" android:text="SFTP"/>
-        </RadioGroup>
+            android:scrollbars="none">
+            <RadioGroup
+                android:id="@+id/rgType"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+                <RadioButton android:id="@+id/rbSmb" android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" android:text="SMB" android:checked="true"/>
+                <RadioButton android:id="@+id/rbSftp" android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" android:layout_marginStart="16dp" android:text="SFTP"/>
+                <RadioButton android:id="@+id/rbFtp" android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" android:layout_marginStart="16dp" android:text="FTP"/>
+                <RadioButton android:id="@+id/rbFtps" android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" android:layout_marginStart="16dp" android:text="FTPS"/>
+            </RadioGroup>
+        </HorizontalScrollView>
 
         <EditText android:id="@+id/etName" android:layout_width="match_parent"
             android:layout_height="wrap_content" android:hint="Display name (optional)"

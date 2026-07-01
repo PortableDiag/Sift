@@ -39,7 +39,7 @@ public class FileSystemManager {
     /** Resolves a filesystem by type/connection (used for bookmarks and trash). */
     public FileSystem resolveFs(String type, String connectionId, String hintPath) throws Exception {
         if ("root".equals(type)) return root();
-        if ("smb".equals(type) || "sftp".equals(type)) {
+        if (Connection.isNetwork(type)) {
             Connection c = store.find(connectionId);
             if (c == null) throw new Exception("Saved connection was removed");
             return forConnection(c);
@@ -59,7 +59,7 @@ public class FileSystemManager {
     /** Resolves the filesystem for a bookmark; may connect — call off the main thread. */
     public FileSystem resolveBookmark(Bookmark b) throws Exception {
         if ("root".equals(b.type)) return root();
-        if ("smb".equals(b.type) || "sftp".equals(b.type)) {
+        if (Connection.isNetwork(b.type)) {
             Connection c = store.find(b.connectionId);
             if (c == null) throw new Exception("Saved connection was removed");
             return forConnection(c);
@@ -108,8 +108,10 @@ public class FileSystemManager {
     public synchronized FileSystem forConnection(Connection c) throws Exception {
         FileSystem cached = netCache.get(c.id);
         if (cached != null) return cached;
-        FileSystem fs = Connection.TYPE_SFTP.equals(c.type)
-                ? new SftpFileSystem(c) : new SmbFileSystem(c);
+        FileSystem fs;
+        if (Connection.TYPE_SFTP.equals(c.type)) fs = new SftpFileSystem(c);
+        else if (Connection.TYPE_FTP.equals(c.type) || Connection.TYPE_FTPS.equals(c.type)) fs = new FtpFileSystem(c);
+        else fs = new SmbFileSystem(c);
         netCache.put(c.id, fs);
         return fs;
     }

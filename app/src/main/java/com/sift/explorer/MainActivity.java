@@ -286,14 +286,16 @@ public class MainActivity extends AppCompatActivity implements BrowserHost {
         switch (type) {
             case "root": return R.drawable.ic_root;
             case "smb":
-            case "sftp": return R.drawable.ic_network;
+            case "sftp":
+            case "ftp":
+            case "ftps": return R.drawable.ic_network;
             default: return R.drawable.ic_folder;
         }
     }
 
     private void openBookmark(Bookmark b) {
         // Local/root resolve instantly; network may connect, so resolve off the UI thread.
-        final boolean network = "smb".equals(b.type) || "sftp".equals(b.type);
+        final boolean network = com.sift.explorer.fs.Connection.isNetwork(b.type);
         final boolean[] cancelled = {false};
         final android.app.ProgressDialog pd;
         if (network) {
