@@ -48,8 +48,25 @@ export ANDROID_HOME=/path/to/android-sdk
 # -> app/build/outputs/apk/release/app-release.apk
 ```
 
-Signing is read from `keystore.properties` (self-signed key `sift-release.jks`
-is included for sideload testing).
+### Signing
+Release builds are signed with credentials read from `keystore.properties` at the
+project root. **This file and the keystore are not committed** — you supply your own.
+
+1. Generate a keystore (one-time):
+   ```bash
+   keytool -genkeypair -v -keystore sift-release.jks -alias sift \
+     -keyalg RSA -keysize 2048 -validity 10000
+   ```
+2. Create `keystore.properties` next to `build.gradle`:
+   ```properties
+   storeFile=sift-release.jks
+   storePassword=yourStorePassword
+   keyAlias=sift
+   keyPassword=yourKeyPassword
+   ```
+
+Both are gitignored. If `keystore.properties` is absent the release build is left
+unsigned rather than failing, so the project still builds without it.
 
 - `minSdk` 26, `targetSdk` 35, package `com.sift.explorer`.
 - Libraries: jcifs-ng (SMB), JSch/mwiede (SFTP), Commons Net (FTP/FTPS),
