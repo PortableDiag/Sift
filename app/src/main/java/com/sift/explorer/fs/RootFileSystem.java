@@ -20,6 +20,15 @@ public class RootFileSystem extends FileSystem {
     @Override public String getDisplayName() { return "Root (/)"; }
     @Override public String getRootPath() { return "/"; }
 
+    @Override public long[] getUsage() {
+        try {
+            android.os.StatFs s = new android.os.StatFs("/");
+            long total = s.getTotalBytes();
+            long free = s.getAvailableBytes();
+            return new long[]{ total - free, total };
+        } catch (Exception e) { return null; }
+    }
+
     public static boolean isAvailable() {
         try {
             Process p = new ProcessBuilder("su", "-c", "id").redirectErrorStream(true).start();

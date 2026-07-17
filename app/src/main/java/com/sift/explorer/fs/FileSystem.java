@@ -56,6 +56,13 @@ public abstract class FileSystem {
     /** Id of the saved connection backing this filesystem (smb/sftp), else null. */
     public String connectionId() { return null; }
 
+    /**
+     * Disk usage for the volume backing this filesystem, as {@code {usedBytes, totalBytes}},
+     * or {@code null} if the backend cannot report it (network shares). Cheap for local/root
+     * (a single {@code StatFs}); safe to call on the main thread.
+     */
+    public long[] getUsage() { return null; }
+
     /** Releases sockets/sessions. Safe to call repeatedly. */
     public void close() {}
 

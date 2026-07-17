@@ -59,6 +59,10 @@
             android:name=".ui.TextViewerActivity"
             android:exported="false"/>
 
+        <activity
+            android:name=".ui.DiskUsageActivity"
+            android:exported="false"/>
+
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Background for the top strip (status-bar inset + tab bar). Lets dark mode use a
+         deeper tone than colorSurface so the header doesn't read as a washed-out blue. -->
+    <attr name="colorTopBar" format="color"/>
+</resources>

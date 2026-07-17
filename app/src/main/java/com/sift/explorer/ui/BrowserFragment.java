@@ -186,7 +186,19 @@ public class BrowserFragment extends Fragment implements FileAdapter.Listener {
             return true;
         } else if (id == R.id.action_properties) { showProperties(Collections.singletonList(currentDirItem())); return true; }
         else if (id == R.id.action_bookmark) { toggleBookmark(); return true; }
+        else if (id == R.id.action_disk_usage) { openDiskUsage(); return true; }
         return false;
+    }
+
+    /** Opens the disk-usage view scanning this tab's current folder (local/root only). */
+    private void openDiskUsage() {
+        String type = tab.fs.getType();
+        if (!"local".equals(type) && !"root".equals(type)) {
+            Toast.makeText(requireContext(), "Disk usage isn't available for network shares.",
+                    Toast.LENGTH_SHORT).show();
+            return;
+        }
+        DiskUsageActivity.open(requireContext(), type, tab.path);
     }
 
     private boolean isBookmarked() {

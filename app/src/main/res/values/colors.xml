@@ -12,6 +12,7 @@
     <color name="on_surface">#1A1B20</color>
     <color name="on_surface_variant">#44474F</color>
     <color name="outline">#C4C6D0</color>
+    <color name="top_bar">#FFFFFF</color>
 
     <color name="crumb_active">#2D6BFF</color>
     <color name="crumb_inactive">#8A9099</color>

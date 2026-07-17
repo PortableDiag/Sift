@@ -28,5 +28,6 @@
     <item android:id="@+id/action_select_all" android:title="Select all" app:showAsAction="never"/>
     <item android:id="@+id/action_show_hidden" android:title="Show hidden" android:checkable="true" app:showAsAction="never"/>
     <item android:id="@+id/action_refresh" android:title="Refresh" app:showAsAction="never"/>
+    <item android:id="@+id/action_disk_usage" android:title="Disk usage" app:showAsAction="never"/>
     <item android:id="@+id/action_properties" android:title="Folder info" app:showAsAction="never"/>
 </menu>

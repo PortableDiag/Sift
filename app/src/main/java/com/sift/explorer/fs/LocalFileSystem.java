@@ -26,6 +26,15 @@ public class LocalFileSystem extends FileSystem {
     @Override public String getRootPath() { return rootPath; }
     @Override public boolean isLocal() { return true; }
 
+    @Override public long[] getUsage() {
+        try {
+            android.os.StatFs s = new android.os.StatFs(rootPath);
+            long total = s.getTotalBytes();
+            long free = s.getAvailableBytes();
+            return new long[]{ total - free, total };
+        } catch (Exception e) { return null; }
+    }
+
     @Override public List<FileItem> list(String path) throws Exception {
         File dir = new File(path);
         File[] children = dir.listFiles();

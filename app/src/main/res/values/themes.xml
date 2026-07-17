@@ -13,6 +13,7 @@
         <item name="colorOnSurface">@color/on_surface</item>
         <item name="colorOnSurfaceVariant">@color/on_surface_variant</item>
         <item name="colorOutline">@color/outline</item>
+        <item name="colorTopBar">@color/top_bar</item>
 
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>
@@ -37,6 +38,7 @@
         <item name="colorOnSurface">@color/term_on_surface</item>
         <item name="colorOnSurfaceVariant">@color/term_on_surface_variant</item>
         <item name="colorOutline">@color/term_outline</item>
+        <item name="colorTopBar">@color/term_surface</item>
 
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>

@@ -37,6 +37,7 @@ import com.sift.explorer.fs.TrashEntry;
 import com.sift.explorer.fs.TrashStore;
 import com.sift.explorer.ui.BrowserFragment;
 import com.sift.explorer.ui.BrowserHost;
+import com.sift.explorer.ui.DiskUsageActivity;
 import com.sift.explorer.ui.Tab;
 import com.sift.explorer.ui.TabManager;
 import com.sift.explorer.ui.TabPagerAdapter;
@@ -54,6 +55,9 @@ public class MainActivity extends AppCompatActivity implements BrowserHost {
     private DrawerLayout drawer;
     private LinearLayout bookmarkList;
     private View bookmarkEmpty;
+    private View storageSection;
+    private TextView storageLabel, storageSub;
+    private View usageFill, usageSpacer;
     private TabPagerAdapter adapter;
     private final TabManager tabs = TabManager.get();
     private final ExecutorService io = Executors.newSingleThreadExecutor();
@@ -71,10 +75,19 @@ public class MainActivity extends AppCompatActivity implements BrowserHost {
         pager = findViewById(R.id.pager);
         bookmarkList = findViewById(R.id.bookmarkList);
         bookmarkEmpty = findViewById(R.id.bookmarkEmpty);
+        storageSection = findViewById(R.id.storageSection);
+        storageLabel = findViewById(R.id.storageLabel);
+        storageSub = findViewById(R.id.storageSub);
+        usageFill = findViewById(R.id.usageFill);
+        usageSpacer = findViewById(R.id.usageSpacer);
+        findViewById(R.id.storageRow).setOnClickListener(v -> openDiskUsage());
 
         setupDrawerControls();
 
         findViewById(R.id.hamburger).setOnClickListener(v -> drawer.openDrawer(GravityCompat.START));
+        drawer.addDrawerListener(new DrawerLayout.SimpleDrawerListener() {
+            @Override public void onDrawerOpened(View d) { updateStorageBar(); }
+        });
 
         if (tabs.isEmpty()) {
             FileSystem internal = FileSystemManager.get(this).internalStorage();
@@ -261,6 +274,7 @@ public class MainActivity extends AppCompatActivity implements BrowserHost {
     // ---- bookmarks drawer ------------------------------------------------
 
     private void rebuildDrawer() {
+        updateStorageBar();
         int trashCount = FileSystemManager.get(this).trash().count();
         ((TextView) findViewById(R.id.binCount)).setText(trashCount == 0 ? "Empty" : String.valueOf(trashCount));
 
@@ -329,6 +343,45 @@ public class MainActivity extends AppCompatActivity implements BrowserHost {
                 });
             }
         });
+    }
+
+    // ---- storage bar -----------------------------------------------------
+
+    /** Filesystem of the visible tab, falling back to internal storage on the new-tab page. */
+    private FileSystem currentFs() {
+        int pos = pager.getCurrentItem();
+        if (pos < 0 || pos >= tabs.count()) return FileSystemManager.get(this).internalStorage();
+        return tabs.at(pos).fs;
+    }
+
+    private void updateStorageBar() {
+        FileSystem fs = currentFs();
+        long[] u = fs == null ? null : fs.getUsage();
+        if (u == null || u.length < 2 || u[1] <= 0) {
+            storageSection.setVisibility(View.GONE);
+            return;
+        }
+        storageSection.setVisibility(View.VISIBLE);
+        long used = Math.max(0, u[0]), total = u[1], free = Math.max(0, total - used);
+        float usedFrac = Math.max(0.02f, Math.min(1f, (float) used / total));
+        ((LinearLayout.LayoutParams) usageFill.getLayoutParams()).weight = usedFrac;
+        ((LinearLayout.LayoutParams) usageSpacer.getLayoutParams()).weight = 1f - usedFrac;
+        ((View) usageFill.getParent()).requestLayout();
+        storageLabel.setText(fs.getDisplayName());
+        storageSub.setText(android.text.format.Formatter.formatFileSize(this, used) + " used · "
+                + android.text.format.Formatter.formatFileSize(this, free) + " free of "
+                + android.text.format.Formatter.formatFileSize(this, total));
+    }
+
+    private void openDiskUsage() {
+        FileSystem fs = currentFs();
+        String type = fs.getType();
+        if (!"local".equals(type) && !"root".equals(type)) {
+            Toast.makeText(this, "Disk usage isn't available for network shares.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        drawer.closeDrawers();
+        DiskUsageActivity.open(this, type, fs.getRootPath());
     }
 
     private android.app.ProgressDialog busy(String msg) {
