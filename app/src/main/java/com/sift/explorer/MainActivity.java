@@ -88,6 +88,7 @@ public class MainActivity extends AppCompatActivity implements BrowserHost {
         drawer.addDrawerListener(new DrawerLayout.SimpleDrawerListener() {
             @Override public void onDrawerOpened(View d) { updateStorageBar(); }
         });
+        applyTopBarColor();
 
         if (tabs.isEmpty()) {
             FileSystem internal = FileSystemManager.get(this).internalStorage();
@@ -343,6 +344,31 @@ public class MainActivity extends AppCompatActivity implements BrowserHost {
                 });
             }
         });
+    }
+
+    /**
+     * DrawerLayout paints the status-bar region with its own scrim (default: the theme's
+     * colorPrimaryDark, which Material3 leaves light → the "baby blue"/neon strip). Override it
+     * with colorTopBar so the very top matches the tab bar, and flip the status-bar icons to
+     * stay legible against it.
+     */
+    private void applyTopBarColor() {
+        int c = resolveColor(R.attr.colorTopBar);
+        drawer.setStatusBarBackgroundColor(c);
+        boolean lightBar = androidx.core.graphics.ColorUtils.calculateLuminance(c) > 0.5;
+        View dec = getWindow().getDecorView();
+        int flags = dec.getSystemUiVisibility();
+        if (lightBar) flags |= View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
+        else flags &= ~View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
+        dec.setSystemUiVisibility(flags);
+    }
+
+    private int resolveColor(int attr) {
+        android.util.TypedValue tv = new android.util.TypedValue();
+        getTheme().resolveAttribute(attr, tv, true);
+        return tv.resourceId != 0
+                ? androidx.core.content.ContextCompat.getColor(this, tv.resourceId)
+                : tv.data;
     }
 
     // ---- storage bar -----------------------------------------------------

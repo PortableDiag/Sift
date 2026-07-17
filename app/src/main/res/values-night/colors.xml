@@ -12,7 +12,7 @@
     <color name="on_surface">#E3E5EA</color>
     <color name="on_surface_variant">#C4C6D0</color>
     <color name="outline">#3A3E46</color>
-    <color name="top_bar">#090C12</color>
+    <color name="top_bar">#000000</color>
 
     <color name="crumb_active">#AEC6FF</color>
     <color name="crumb_inactive">#8A9099</color>
