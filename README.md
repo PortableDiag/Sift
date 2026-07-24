@@ -29,7 +29,9 @@ credentials are never written to disk in plaintext.
 - List **and** grid views, per-tab.
 - **Image & video thumbnails**, and **folder previews** — a 2×2 collage of the
   images inside a folder, rendered on its tile.
-- Built-in **image viewer** (pinch-zoom / double-tap / pan) and **text viewer/editor**.
+- Built-in **image viewer** (pinch-zoom / double-tap / pan) and **text viewer/editor**
+  — edit and save on **any** backend (writes back to remote shares), find, word-wrap
+  toggle, copy-all, and **"Open as text"** to force any file into the editor.
 - Multi-select: **copy, move (cut), delete, share, rename, compress to ZIP,
   extract ZIP, copy path, properties** (with recursive folder-size calc).
 - Cross-backend operations with progress + cancel (e.g. SFTP → SMB copy streams

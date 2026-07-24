@@ -329,6 +329,7 @@ public class BrowserFragment extends Fragment implements FileAdapter.Listener {
         android.widget.PopupMenu pm = new android.widget.PopupMenu(requireContext(), anchor);
         pm.getMenu().add("Open");
         if (!item.isDirectory) pm.getMenu().add("Open with…");
+        if (!item.isDirectory) pm.getMenu().add("Open as text");
         pm.getMenu().add("Copy");
         pm.getMenu().add("Cut");
         pm.getMenu().add("Rename");
@@ -347,6 +348,7 @@ public class BrowserFragment extends Fragment implements FileAdapter.Listener {
             switch (mi.getTitle().toString()) {
                 case "Open": if (item.isDirectory) open(item); else openFile(item); break;
                 case "Open with…": openExternal(item, true); break;
+                case "Open as text": openAsText(item); break;
                 case "Copy": clipboardItems(one, Clipboard.Mode.COPY); break;
                 case "Cut": clipboardItems(one, Clipboard.Mode.MOVE); break;
                 case "Rename": promptRename(item); break;
@@ -387,11 +389,19 @@ public class BrowserFragment extends Fragment implements FileAdapter.Listener {
         if (MimeUtils.isImage(item)) {
             openImageGallery(item);
         } else if (MimeUtils.isTextLike(item) && item.size < 5_000_000) {
-            withLocalCopy(item, file -> TextViewerActivity.open(requireContext(), file.getAbsolutePath(), item.name,
-                    item.fs.isLocal()));
+            openAsText(item);
         } else {
             openExternal(item, false);
         }
+    }
+
+    /** Force-open any file in the built-in text editor, downloading remote files first. */
+    private void openAsText(FileItem item) {
+        if (item.size >= 20_000_000) { toast("File too large to open as text"); return; }
+        withLocalCopy(item, file -> {
+            TextTarget.set(item, file, item.name);
+            TextViewerActivity.open(requireContext());
+        });
     }
 
     /** Launch the swipeable gallery over all images in the current folder view. */

@@ -3,4 +3,10 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item android:id="@+id/action_save" android:title="Save"
         android:icon="@drawable/ic_check" app:showAsAction="ifRoom"/>
+    <item android:id="@+id/action_find" android:title="Find"
+        android:icon="@drawable/ic_search" app:showAsAction="ifRoom"/>
+    <item android:id="@+id/action_copy_all" android:title="Copy all"
+        android:icon="@drawable/ic_copy" app:showAsAction="never"/>
+    <item android:id="@+id/action_wrap" android:title="Word wrap"
+        android:checkable="true" app:showAsAction="never"/>
 </menu>
