@@ -77,7 +77,6 @@ public class TextViewerActivity extends AppCompatActivity {
         toolbar.getMenu().findItem(R.id.action_wrap).setChecked(wrap);
 
         editor = findViewById(R.id.editor);
-        editor.setHorizontallyScrolling(!wrap);
         editor.addTextChangedListener(new TextWatcher() {
             @Override public void beforeTextChanged(CharSequence c, int a, int b, int d) {}
             @Override public void onTextChanged(CharSequence c, int a, int b, int d) {}
@@ -85,6 +84,15 @@ public class TextViewerActivity extends AppCompatActivity {
                 if (!loading && !dirty) { dirty = true; updateTitle(); }
             }
         });
+        // Wrap mode needs the viewport width, which isn't known until the first layout pass.
+        editor.getViewTreeObserver().addOnGlobalLayoutListener(
+                new android.view.ViewTreeObserver.OnGlobalLayoutListener() {
+                    @Override public void onGlobalLayout() {
+                        if (viewportWidth() <= 0) return;
+                        editor.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                        applyWrap();
+                    }
+                });
 
         setupFindBar();
 
@@ -170,16 +178,36 @@ public class TextViewerActivity extends AppCompatActivity {
     }
 
     private void setWrap(boolean on) {
-        if (wrap == on) return;
         wrap = on;
-        int st = editor.getSelectionStart(), en = editor.getSelectionEnd();
-        CharSequence t = editor.getText();
-        loading = true;
-        editor.setHorizontallyScrolling(!wrap);
-        editor.setText(t);                       // force the text Layout to rebuild for the new mode
-        loading = false;
-        int len = editor.length();
-        editor.setSelection(Math.min(st, len), Math.min(en, len));
+        applyWrap();
+    }
+
+    /**
+     * Apply the current wrap mode. A {@link android.widget.HorizontalScrollView} always measures
+     * its child with an unbounded width spec, so an EditText inside it never wraps on its own.
+     * In wrap mode we therefore pin the editor's width to the viewport with
+     * {@link EditText#setWidth(int)} (min==max, which the TextView honours even under an
+     * unbounded spec); in no-wrap mode we release it and let the editor grow + scroll sideways.
+     */
+    private void applyWrap() {
+        if (wrap) {
+            int vw = viewportWidth();
+            editor.setHorizontallyScrolling(false);
+            if (vw > 0) editor.setWidth(vw);
+        } else {
+            editor.setHorizontallyScrolling(true);
+            editor.setMinWidth(0);
+            editor.setMaxWidth(Integer.MAX_VALUE);
+        }
+        editor.requestLayout();
+    }
+
+    /** Width available for text inside the horizontal scroller, or 0 before the first layout. */
+    private int viewportWidth() {
+        View hs = findViewById(R.id.hscroll);
+        int w = hs == null ? 0 : hs.getWidth();
+        if (w == 0) return 0;
+        return w - editor.getPaddingLeft() - editor.getPaddingRight();
     }
 
     // ---- find bar --------------------------------------------------------
