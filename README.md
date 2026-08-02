@@ -36,6 +36,11 @@ credentials are never written to disk in plaintext.
   extract ZIP, copy path, properties** (with recursive folder-size calc).
 - Cross-backend operations with progress + cancel (e.g. SFTP → SMB copy streams
   straight through; same-backend moves are server-side/instant).
+- **Open with** any installed app (with a remembered default per file type).
+  Handoffs launch in their **own task** — a media player gets its own Recents
+  entry and is closed independently of Sift, so audio/video never lingers in the
+  background. Indexed local media is handed off via a **MediaStore URI**, so
+  players can queue the whole containing folder.
 - Sort by name / size / date / type, folders-first, show/hide hidden files.
 - Breadcrumb path bar, in-folder search, pull-to-refresh.
 - Material 3 design, light/dark, edge-to-edge.
