@@ -51,6 +51,31 @@ public class OpenWith {
         return FileProvider.getUriForFile(ctx, ctx.getPackageName() + ".fileprovider", file);
     }
 
+    /**
+     * A MediaStore {@code content://media/...} URI if this file is indexed there, else our
+     * FileProvider URI. The MediaStore form carries a real id, so the receiving player can
+     * locate the file's folder directly instead of guessing by name+size.
+     */
+    private static Uri viewUri(Context ctx, File file, String mime) {
+        Uri collection = null;
+        if (mime != null) {
+            if (mime.startsWith("video/"))      collection = android.provider.MediaStore.Video.Media.EXTERNAL_CONTENT_URI;
+            else if (mime.startsWith("audio/")) collection = android.provider.MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
+            else if (mime.startsWith("image/")) collection = android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
+        }
+        if (collection != null) {
+            try (android.database.Cursor c = ctx.getContentResolver().query(
+                    collection, new String[]{android.provider.MediaStore.MediaColumns._ID},
+                    android.provider.MediaStore.MediaColumns.DATA + "=?",
+                    new String[]{file.getAbsolutePath()}, null)) {
+                if (c != null && c.moveToFirst()) {
+                    return android.content.ContentUris.withAppendedId(collection, c.getLong(0));
+                }
+            } catch (Exception ignore) { /* fall through to FileProvider */ }
+        }
+        return uriFor(ctx, file);
+    }
+
     private static Intent baseIntent(Uri uri, String mime) {
         Intent i = new Intent(Intent.ACTION_VIEW);
         i.setDataAndType(uri, mime);
@@ -68,7 +93,7 @@ public class OpenWith {
         // Without it the package installer just silently no-ops, so ask first.
         if (isApk(mime) && !canInstallApks(act)) { promptInstallPermission(act); return; }
         try {
-            Intent i = baseIntent(uriFor(act, file), mime);
+            Intent i = baseIntent(viewUri(act, file, mime), mime);
             i.setComponent(cn);
             // Launch the handoff app as its own task so it stands alone in Recents
             // instead of being buried inside Sift's task. Otherwise a media player

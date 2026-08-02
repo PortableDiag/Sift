@@ -64,6 +64,10 @@ public class MimeUtils {
         String ext = item.getExtension();
         String mime = MimeTypeMap.getSingleton().getMimeTypeFromExtension(ext);
         if (mime != null) return mime;
+        // Fill gaps MimeTypeMap misses so players' video/* filters still match.
+        switch (ext) {
+            case "ts": case "m2ts": case "mts": return "video/mp2t";
+        }
         if (TEXT.contains(ext) || CODE.contains(ext)) return "text/plain";
         return "application/octet-stream";
     }
