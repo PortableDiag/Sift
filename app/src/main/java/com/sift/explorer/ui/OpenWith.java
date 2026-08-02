@@ -70,6 +70,11 @@ public class OpenWith {
         try {
             Intent i = baseIntent(uriFor(act, file), mime);
             i.setComponent(cn);
+            // Launch the handoff app as its own task so it stands alone in Recents
+            // instead of being buried inside Sift's task. Otherwise a media player
+            // keeps streaming through Sift's FileProvider and can only be stopped by
+            // force-closing Sift; as its own task the user just swipes it away.
+            i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             act.startActivity(i);
         } catch (Exception e) {
             Toast.makeText(act, "Couldn’t open with that app", Toast.LENGTH_SHORT).show();
