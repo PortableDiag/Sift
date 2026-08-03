@@ -39,8 +39,11 @@ credentials are never written to disk in plaintext.
 - **Open with** any installed app (with a remembered default per file type).
   Handoffs launch in their **own task** — a media player gets its own Recents
   entry and is closed independently of Sift, so audio/video never lingers in the
-  background. Indexed local media is handed off via a **MediaStore URI**, so
-  players can queue the whole containing folder.
+  background. Indexed local media is handed off via a **MediaStore URI**, and
+  audio/video handoffs also carry **the rest of the folder as `ClipData`** — so
+  the player's next/previous can move through the folder even when the system
+  media index can't see it (e.g. under a `.nomedia`), with no media permission
+  needed on its side.
 - Sort by name / size / date / type, folders-first, show/hide hidden files.
 - Breadcrumb path bar, in-folder search, pull-to-refresh.
 - Material 3 design, light/dark, edge-to-edge.

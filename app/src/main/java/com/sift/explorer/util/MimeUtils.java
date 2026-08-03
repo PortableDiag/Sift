@@ -61,7 +61,14 @@ public class MimeUtils {
 
     public static String mimeType(FileItem item) {
         if (item.isDirectory) return "resource/folder";
-        String ext = item.getExtension();
+        return mimeOfName(item.name);
+    }
+
+    /** MIME type for a bare file name, for the places we only have a {@link java.io.File}. */
+    public static String mimeOfName(String name) {
+        int dot = name.lastIndexOf('.');
+        String ext = (dot <= 0 || dot == name.length() - 1) ? ""
+                : name.substring(dot + 1).toLowerCase();
         String mime = MimeTypeMap.getSingleton().getMimeTypeFromExtension(ext);
         if (mime != null) return mime;
         // Fill gaps MimeTypeMap misses so players' video/* filters still match.

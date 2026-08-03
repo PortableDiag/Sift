@@ -1,6 +1,7 @@
 package com.sift.explorer.ui;
 
 import android.app.Activity;
+import android.content.ClipData;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -83,6 +84,45 @@ public class OpenWith {
         return i;
     }
 
+    /** Cap on how many siblings we hand over, to stay well clear of the Binder transaction limit. */
+    private static final int MAX_SIBLINGS = 500;
+
+    /**
+     * Attaches the folder's other media of the same kind as ClipData, so a player can offer
+     * next/previous across the folder. We're the ones browsing it, so we know what's there — and
+     * the read grant on the intent extends to every ClipData item. This is what lets a player page
+     * through folders MediaStore doesn't index (a {@code .nomedia} folder, or files copied in since
+     * the last scan), which it otherwise can't see at all.
+     */
+    private static void attachSiblings(Context ctx, Intent intent, File file, String mime) {
+        if (mime == null) return;
+        int slash = mime.indexOf('/');
+        final String kind = slash > 0 ? mime.substring(0, slash) : mime;
+        if (!kind.equals("video") && !kind.equals("audio")) return;
+
+        File dir = file.getParentFile();
+        if (dir == null) return;
+        File[] found = dir.listFiles(f ->
+                f.isFile() && com.sift.explorer.util.MimeUtils.mimeOfName(f.getName())
+                        .startsWith(kind + "/"));
+        if (found == null || found.length < 2 || found.length > MAX_SIBLINGS) return;
+
+        java.util.Arrays.sort(found, (a, b) -> a.getName().compareToIgnoreCase(b.getName()));
+
+        String openedPath = file.getAbsolutePath();
+        ClipData clip = null;
+        for (File f : found) {
+            // Siblings go over as FileProvider uris: the grant rides on the intent, so the player
+            // needs no media permission and no MediaStore lookup per file.
+            Uri u = f.getAbsolutePath().equals(openedPath) ? intent.getData() : uriFor(ctx, f);
+            if (u == null) continue;
+            ClipData.Item item = new ClipData.Item(f.getName(), null, u);
+            if (clip == null) clip = new ClipData(kind, new String[]{mime}, item);
+            else clip.addItem(item);
+        }
+        if (clip != null && clip.getItemCount() > 1) intent.setClipData(clip);
+    }
+
     private static boolean resolvable(Context ctx, ComponentName cn) {
         try { ctx.getPackageManager().getActivityInfo(cn, 0); return true; }
         catch (Exception e) { return false; }
@@ -94,6 +134,7 @@ public class OpenWith {
         if (isApk(mime) && !canInstallApks(act)) { promptInstallPermission(act); return; }
         try {
             Intent i = baseIntent(viewUri(act, file, mime), mime);
+            attachSiblings(act, i, file, mime);
             i.setComponent(cn);
             // Launch the handoff app as its own task so it stands alone in Recents
             // instead of being buried inside Sift's task. Otherwise a media player

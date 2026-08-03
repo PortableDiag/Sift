@@ -2,6 +2,15 @@
 
 All notable changes to Sift are documented here. Versions are tagged `vX.Y`.
 
+## [1.10] — 2026-08-03
+### Added
+- Opening audio or video now hands the player the rest of the folder as intent
+  `ClipData`, so its next/previous can move through the folder. The read grant
+  on the intent covers every item, so this works for folders the system media
+  index can't see — anything under a `.nomedia`, or files copied in since the
+  last scan — and needs no media permission in the receiving app. Attached only
+  for folders with 2–500 items of the same kind.
+
 ## [1.9] — 2026-08-02
 ### Added
 - Opening indexed local media now hands the external player a
