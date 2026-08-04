@@ -43,7 +43,9 @@ credentials are never written to disk in plaintext.
   audio/video handoffs also carry **the rest of the folder as `ClipData`** — so
   the player's next/previous can move through the folder even when the system
   media index can't see it (e.g. under a `.nomedia`), with no media permission
-  needed on its side.
+  needed on its side. Files opened from a network share or root are downloaded to
+  a private per-file cache directory first, so they are handed over as a single
+  item — the folder they came from isn't local to offer.
 - Sort by name / size / date / type, folders-first, show/hide hidden files.
 - Breadcrumb path bar, in-folder search, pull-to-refresh.
 - Material 3 design, light/dark, edge-to-edge.

@@ -447,13 +447,14 @@ public class BrowserFragment extends Fragment implements FileAdapter.Listener {
     private void withLocalCopy(FileItem item, FileCb cb) {
         File local = item.asLocalFile();
         if (local != null) { cb.run(local); return; }
-        final File cache = new File(requireContext().getCacheDir(), "open/" + item.name);
-        cache.getParentFile().mkdirs();
-        cache.delete(); // avoid serving a stale copy
+        final File dir = stagingDir(item);
+        dir.mkdirs();
+        clearDir(dir); // avoid serving a stale copy
+        final File cache = new File(dir, item.name);
         android.app.ProgressDialog pd = showBusy("Opening " + item.name + "…");
         LocalFileSystem cacheFs = new LocalFileSystem(requireContext().getCacheDir().getAbsolutePath(), "cache");
         List<FileItem> one = Collections.singletonList(item);
-        FileOps.copy(one, cacheFs, cache.getParentFile().getAbsolutePath(), false, new FileOps.Listener() {
+        FileOps.copy(one, cacheFs, dir.getAbsolutePath(), false, new FileOps.Listener() {
             @Override public void onProgress(FileOps.Progress p) {}
             @Override public void onDone(boolean ok, String err) {
                 pd.dismiss();
@@ -461,6 +462,39 @@ public class BrowserFragment extends Fragment implements FileAdapter.Listener {
                 else showError(err == null ? "Could not open file" : err);
             }
         });
+    }
+
+    /**
+     * The cache directory a remote or root file is staged into — one per source file, keyed by
+     * its filesystem and path.
+     *
+     * <p>{@link OpenWith} works out which folder a file belongs to by listing the parent of the
+     * File it is handed. Staging everything into one flat directory therefore offered every
+     * previously-opened file to the player as a sibling of this one. A directory per source file
+     * holds exactly one file, so the player falls back to single-file playback — the honest
+     * answer for a share whose other files we have not downloaded. It also stops two shares
+     * holding the same filename from overwriting each other's copy.
+     */
+    private File stagingDir(FileItem item) {
+        String key = (item.fs == null ? "" : item.fs.getId()) + "\n" + item.path;
+        return new File(requireContext().getCacheDir(), "open/" + shortHash(key));
+    }
+
+    private static String shortHash(String s) {
+        try {
+            byte[] d = java.security.MessageDigest.getInstance("SHA-1")
+                    .digest(s.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            StringBuilder sb = new StringBuilder(16);
+            for (int i = 0; i < 8; i++) sb.append(String.format("%02x", d[i]));
+            return sb.toString();
+        } catch (Exception e) {
+            return Integer.toHexString(s.hashCode());
+        }
+    }
+
+    private static void clearDir(File dir) {
+        File[] stale = dir.listFiles();
+        if (stale != null) for (File f : stale) f.delete();
     }
 
     // ---- selection -------------------------------------------------------

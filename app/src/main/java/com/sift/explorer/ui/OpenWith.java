@@ -101,7 +101,7 @@ public class OpenWith {
         if (!kind.equals("video") && !kind.equals("audio")) return;
 
         File dir = file.getParentFile();
-        if (dir == null) return;
+        if (dir == null || isStaged(ctx, dir)) return;
         File[] found = dir.listFiles(f ->
                 f.isFile() && com.sift.explorer.util.MimeUtils.mimeOfName(f.getName())
                         .startsWith(kind + "/"));
@@ -121,6 +121,22 @@ public class OpenWith {
             else clip.addItem(item);
         }
         if (clip != null && clip.getItemCount() > 1) intent.setClipData(clip);
+    }
+
+    /**
+     * True for a file we staged into the cache — a remote-share or root file downloaded so it can
+     * be handed over as a local copy. Its neighbours are other files the user happened to open
+     * before, not the folder it came from, so they must never be offered as siblings. Staging
+     * gives each file its own directory, which alone is enough; this is the guard at the point
+     * where the folder is actually decided, so the invariant can't be lost upstream.
+     */
+    private static boolean isStaged(Context ctx, File dir) {
+        try {
+            String cache = ctx.getCacheDir().getCanonicalPath() + File.separator;
+            return (dir.getCanonicalPath() + File.separator).startsWith(cache);
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     private static boolean resolvable(Context ctx, ComponentName cn) {

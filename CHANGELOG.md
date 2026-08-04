@@ -2,6 +2,19 @@
 
 All notable changes to Sift are documented here. Versions are tagged `vX.Y`.
 
+## [1.11] — 2026-08-03
+### Fixed
+- Opening audio or video from a network share or the root backend no longer hands
+  the player unrelated files as its "folder". Remote files are downloaded to the
+  cache before being handed over, and the folder passed as `ClipData` in 1.10 was
+  read from that cache directory — so every file opened earlier looked like a
+  sibling. Each remote file is now staged into its own directory, keyed by its
+  filesystem and path, and the sibling scan skips cache-staged files outright.
+  Such files now play as a single item, which is the correct answer for a folder
+  whose other files have not been downloaded.
+- As a consequence, two shares holding a file of the same name no longer overwrite
+  each other's cached copy.
+
 ## [1.10] — 2026-08-03
 ### Added
 - Opening audio or video now hands the player the rest of the folder as intent
