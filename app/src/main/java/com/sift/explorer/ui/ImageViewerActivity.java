@@ -18,6 +18,7 @@ import androidx.viewpager2.widget.ViewPager2;
 
 import com.bumptech.glide.Glide;
 import com.google.android.material.appbar.MaterialToolbar;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.sift.explorer.R;
 import com.sift.explorer.fs.FileItem;
 
@@ -55,6 +56,7 @@ public class ImageViewerActivity extends AppCompatActivity {
         toolbar.inflateMenu(R.menu.viewer_menu);
         toolbar.setOnMenuItemClickListener(item -> {
             if (item.getItemId() == R.id.action_share) { shareCurrent(); return true; }
+            if (item.getItemId() == R.id.action_popout) { popOutCurrent(); return true; }
             return false;
         });
 
@@ -88,6 +90,37 @@ public class ImageViewerActivity extends AppCompatActivity {
             int n;
             while ((n = in.read(b)) != -1) out.write(b, 0, n);
         } finally { in.close(); out.close(); }
+    }
+
+    /**
+     * Hand the image being viewed to the floating-window service and step out of the way — the
+     * point of a pop-out is to get back to browsing with the image still on screen.
+     */
+    private void popOutCurrent() {
+        if (!FloatingImageService.canFloat(this)) {
+            new MaterialAlertDialogBuilder(this)
+                    .setTitle("Allow floating windows")
+                    .setMessage("To keep an image on screen while you use other apps, Sift needs "
+                            + "the \u201cDisplay over other apps\u201d permission.")
+                    .setPositiveButton("Open settings", (d, w) ->
+                            startActivity(FloatingImageService.permissionIntent(this)))
+                    .setNegativeButton("Cancel", null)
+                    .show();
+            return;
+        }
+        final FileItem item = items.get(pager.getCurrentItem());
+        exec.execute(() -> {
+            try {
+                File f = item.asLocalFile();
+                if (f == null) { f = cacheFileFor(item); if (!f.exists()) download(item, f); }
+                final File file = f;
+                main.post(() -> {
+                    if (destroyed) return;
+                    FloatingImageService.show(this, file, item.name);
+                    finish();
+                });
+            } catch (Exception ignore) {}
+        });
     }
 
     private void shareCurrent() {

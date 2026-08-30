@@ -329,6 +329,7 @@ public class BrowserFragment extends Fragment implements FileAdapter.Listener {
         android.widget.PopupMenu pm = new android.widget.PopupMenu(requireContext(), anchor);
         pm.getMenu().add("Open");
         if (!item.isDirectory) pm.getMenu().add("Open with…");
+        if (MimeUtils.isImage(item)) pm.getMenu().add("Pop out");
         if (!item.isDirectory) pm.getMenu().add("Open as text");
         pm.getMenu().add("Copy");
         pm.getMenu().add("Cut");
@@ -348,6 +349,7 @@ public class BrowserFragment extends Fragment implements FileAdapter.Listener {
             switch (mi.getTitle().toString()) {
                 case "Open": if (item.isDirectory) open(item); else openFile(item); break;
                 case "Open with…": openExternal(item, true); break;
+                case "Pop out": popOutImage(item); break;
                 case "Open as text": openAsText(item); break;
                 case "Copy": clipboardItems(one, Clipboard.Mode.COPY); break;
                 case "Cut": clipboardItems(one, Clipboard.Mode.MOVE); break;
@@ -412,6 +414,31 @@ public class BrowserFragment extends Fragment implements FileAdapter.Listener {
         if (idx < 0) { imgs = Collections.singletonList(item); idx = 0; }
         ImageGallery.set(imgs, idx);
         ImageViewerActivity.open(requireContext());
+    }
+
+    /**
+     * Float an image in a resizable window over whatever else is on screen, so it stays visible
+     * while you keep browsing. Remote images are staged to cache first, like every other path
+     * that needs a real {@link File}.
+     */
+    private void popOutImage(FileItem item) {
+        if (!FloatingImageService.canFloat(requireContext())) { promptOverlayPermission(); return; }
+        withLocalCopy(item, file -> FloatingImageService.show(requireContext(), file, item.name));
+    }
+
+    /**
+     * "Display over other apps" cannot be granted from a dialog — only in system settings — so
+     * explain why before sending the user there.
+     */
+    private void promptOverlayPermission() {
+        new MaterialAlertDialogBuilder(requireContext())
+                .setTitle("Allow floating windows")
+                .setMessage("To keep an image on screen while you use other apps, Sift needs the "
+                        + "\u201cDisplay over other apps\u201d permission.")
+                .setPositiveButton("Open settings", (d, w) ->
+                        startActivity(FloatingImageService.permissionIntent(requireContext())))
+                .setNegativeButton("Cancel", null)
+                .show();
     }
 
     /** Open a non-previewable file with the remembered app, or the picker. */

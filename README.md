@@ -29,6 +29,12 @@ credentials are never written to disk in plaintext.
 - List **and** grid views, per-tab.
 - **Image & video thumbnails**, and **folder previews** — a 2×2 collage of the
   images inside a folder, rendered on its tile.
+- **Pop-out image windows** — "Pop out" any image (per-file ⋮ menu, or the viewer's
+  toolbar) into a resizable window that floats over Sift *and over other apps*.
+  Drag by the title bar, resize from the corner grip, pinch-zoom inside. Up to six
+  at once, so two images can sit side by side while you keep browsing. Needs the
+  per-app "Display over other apps" permission; a foreground-service notification
+  offers **Close all**, and each window has its own ×.
 - Built-in **image viewer** (pinch-zoom / double-tap / pan) and **text viewer/editor**
   — edit and save on **any** backend (writes back to remote shares), find, word-wrap
   toggle, copy-all, and **"Open as text"** to force any file into the editor.

@@ -2,6 +2,24 @@
 
 All notable changes to Sift are documented here. Versions are tagged `vX.Y`.
 
+## [1.12] — 2026-08-29
+### Added
+- **Pop out an image into a floating window.** "Pop out" on any image — in the
+  per-file ⋮ menu, or from the toolbar of the built-in viewer — puts it in a
+  resizable window that floats over Sift *and over other apps*. Drag it by its
+  title bar, resize it from the corner grip, pinch-zoom and pan inside it as in
+  the full viewer. Up to six at once, so you can compare images side by side
+  while you keep browsing.
+  - Needs the per-app **"Display over other apps"** permission; Sift explains why
+    and opens the settings screen rather than failing silently.
+  - The windows outlive the screen that opened them, so they are held by a
+    foreground service. Its ongoing notification carries **Close all**; each
+    window also has its own ×. Closing the last one stops the service.
+  - The window takes the image's own aspect ratio once the bitmap is decoded, and
+    is kept inside the usable screen area on drag, resize and rotation.
+  - Images on a network share or the root backend are staged to the per-file
+    cache directory first, exactly as every other path that needs a real file.
+
 ## [1.11] — 2026-08-03
 ### Fixed
 - Opening audio or video from a network share or the root backend no longer hands
