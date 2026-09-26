@@ -53,6 +53,9 @@ credentials are never written to disk in plaintext.
   a private per-file cache directory first, so they are handed over as a single
   item — the folder they came from isn't local to offer.
 - Sort by name / size / date / type, folders-first, show/hide hidden files.
+- **Live folder view** — files copied in, moved, renamed or deleted (by Sift, another
+  app, or a PC over USB) appear without refreshing. Local folders update instantly via
+  a filesystem watch; root and network folders are re-checked every 5–10 s while visible.
 - Breadcrumb path bar, in-folder search, pull-to-refresh.
 - Material 3 design, light/dark, edge-to-edge.
 

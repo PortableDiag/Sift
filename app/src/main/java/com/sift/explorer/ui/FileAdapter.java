@@ -8,6 +8,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
@@ -51,6 +52,28 @@ public class FileAdapter extends RecyclerView.Adapter<FileAdapter.VH> {
         items.clear();
         items.addAll(newItems);
         notifyDataSetChanged();
+    }
+
+    /**
+     * Swap in a fresh listing of the same folder, animating only the rows that changed so scroll
+     * position and thumbnails stay put. Selected entries that no longer exist are dropped.
+     */
+    public void updateItems(List<FileItem> newItems) {
+        final List<FileItem> old = new ArrayList<>(items);
+        DiffUtil.DiffResult diff = DiffUtil.calculateDiff(new DiffUtil.Callback() {
+            @Override public int getOldListSize() { return old.size(); }
+            @Override public int getNewListSize() { return newItems.size(); }
+            @Override public boolean areItemsTheSame(int o, int n) { return old.get(o).equals(newItems.get(n)); }
+            @Override public boolean areContentsTheSame(int o, int n) {
+                FileItem a = old.get(o), b = newItems.get(n);
+                return a.isDirectory == b.isDirectory && a.size == b.size
+                        && a.lastModified == b.lastModified && a.isSymlink == b.isSymlink;
+            }
+        });
+        items.clear();
+        items.addAll(newItems);
+        selected.retainAll(items);
+        diff.dispatchUpdatesTo(this);
     }
 
     public void setGrid(boolean g) { if (grid != g) { grid = g; notifyDataSetChanged(); } }

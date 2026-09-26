@@ -62,6 +62,18 @@ public class BrowserFragment extends Fragment implements FileAdapter.Listener {
 
     private final List<FileItem> fullList = new ArrayList<>();
     private String filter = "";
+
+    /** Watches the open folder so copies in/out show up without a manual refresh. */
+    private android.os.FileObserver watcher;
+    private boolean resumed;
+    private boolean silentPending;
+    private final Runnable silentReload = this::reloadSilently;
+    private final Runnable pollTick = new Runnable() {
+        @Override public void run() {
+            reloadSilently();
+            main.postDelayed(this, pollIntervalMs());
+        }
+    };
     private com.sift.explorer.fs.BookmarkStore bookmarks;
 
     public static BrowserFragment newInstance(int tabId) {
@@ -239,6 +251,7 @@ public class BrowserFragment extends Fragment implements FileAdapter.Listener {
         showProgress(true);
         updateChrome();
         if (host() != null) host().onTabUpdated(tab.id);
+        watchCurrentDir();
         final FileSystem fs = tab.fs;
         final String p = path;
         io.execute(() -> {
@@ -265,6 +278,81 @@ public class BrowserFragment extends Fragment implements FileAdapter.Listener {
 
     public void refresh() { load(tab.path, false); }
 
+    // ---- auto-refresh ----------------------------------------------------
+
+    /**
+     * Re-list the current folder in the background and apply only what changed — no spinner, no
+     * lost scroll position or selection. Coalesces bursts (a copy fires many events) into one
+     * listing, and never stacks up behind itself on a slow share.
+     */
+    private void reloadSilently() {
+        if (tab == null || !isAdded() || silentPending) return;
+        silentPending = true;
+        final FileSystem fs = tab.fs;
+        final String p = tab.path;
+        io.execute(() -> {
+            List<FileItem> result = null;
+            try { result = fs.list(p); } catch (Exception ignore) {}
+            final List<FileItem> fresh = result;
+            main.post(() -> {
+                silentPending = false;
+                if (fresh == null || !isAdded() || !p.equals(tab.path)) return;
+                if (sameListing(fullList, fresh)) return;
+                fullList.clear();
+                fullList.addAll(fresh);
+                applyFilterAndSort(true);
+                if (adapter.isSelectionMode()) updateSelectionBar();
+            });
+        });
+    }
+
+    private static boolean sameListing(List<FileItem> a, List<FileItem> b) {
+        if (a.size() != b.size()) return false;
+        java.util.Map<String, FileItem> byPath = new java.util.HashMap<>(a.size() * 2);
+        for (FileItem f : a) byPath.put(f.path, f);
+        for (FileItem f : b) {
+            FileItem o = byPath.get(f.path);
+            if (o == null || o.size != f.size || o.lastModified != f.lastModified
+                    || o.isDirectory != f.isDirectory) return false;
+        }
+        return true;
+    }
+
+    /**
+     * Local folders get an inotify watch for instant updates. Polling stays on as a backstop
+     * everywhere: writes that bypass the FUSE layer (MTP from a PC, other users) raise no event,
+     * and root / network backends have nothing to watch at all.
+     */
+    private long pollIntervalMs() {
+        switch (tab.fs.getType()) {
+            case "local": return 4_000;
+            case "root": return 5_000;
+            default: return 10_000; // smb / sftp / ftp: keep traffic light
+        }
+    }
+
+    @SuppressWarnings("deprecation") // File-based constructor is API 29+; minSdk is 26
+    private void watchCurrentDir() {
+        stopWatching();
+        if (!resumed || tab == null || !tab.fs.isLocal()) return;
+        final int mask = android.os.FileObserver.CREATE | android.os.FileObserver.DELETE
+                | android.os.FileObserver.MOVED_FROM | android.os.FileObserver.MOVED_TO
+                | android.os.FileObserver.CLOSE_WRITE | android.os.FileObserver.ATTRIB
+                | android.os.FileObserver.DELETE_SELF | android.os.FileObserver.MOVE_SELF;
+        watcher = new android.os.FileObserver(tab.path, mask) {
+            @Override public void onEvent(int event, @Nullable String name) {
+                main.removeCallbacks(silentReload);
+                main.postDelayed(silentReload, 300);
+            }
+        };
+        watcher.startWatching();
+    }
+
+    private void stopWatching() {
+        if (watcher != null) { watcher.stopWatching(); watcher = null; }
+        main.removeCallbacks(silentReload);
+    }
+
     public boolean onBackPressed() {
         if (adapter != null && adapter.isSelectionMode()) { exitSelection(); return true; }
         if (tab == null) return false;
@@ -278,7 +366,9 @@ public class BrowserFragment extends Fragment implements FileAdapter.Listener {
 
     private final List<FileItem> shownList = new ArrayList<>();
 
-    private void applyFilterAndSort() {
+    private void applyFilterAndSort() { applyFilterAndSort(false); }
+
+    private void applyFilterAndSort(boolean diffed) {
         if (adapter == null) return;
         shownList.clear();
         for (FileItem f : fullList) {
@@ -287,7 +377,15 @@ public class BrowserFragment extends Fragment implements FileAdapter.Listener {
             shownList.add(f);
         }
         sort(shownList);
-        adapter.setItems(shownList, tab.grid);
+        if (diffed) {
+            // RecyclerView anchors on the first visible row, so an entry inserted above it
+            // lands off-screen; if we were at the top, stay at the top so it is seen.
+            boolean atTop = !recycler.canScrollVertically(-1);
+            adapter.updateItems(shownList);
+            if (atTop) recycler.scrollToPosition(0);
+        } else {
+            adapter.setItems(shownList, tab.grid);
+        }
         emptyView.setVisibility(shownList.isEmpty() ? View.VISIBLE : View.GONE);
     }
 
@@ -911,7 +1009,23 @@ public class BrowserFragment extends Fragment implements FileAdapter.Listener {
 
     private int dp(int d) { return Math.round(getResources().getDisplayMetrics().density * d); }
 
-    @Override public void onResume() { super.onResume(); updateFab(); }
+    /** Only the visible tab watches; others catch up the moment they come back. */
+    @Override public void onResume() {
+        super.onResume();
+        updateFab();
+        resumed = true;
+        if (tab == null) return;
+        watchCurrentDir();
+        reloadSilently();
+        main.postDelayed(pollTick, pollIntervalMs());
+    }
+
+    @Override public void onPause() {
+        super.onPause();
+        resumed = false;
+        stopWatching();
+        main.removeCallbacks(pollTick);
+    }
 
     @Override public void onDestroy() { super.onDestroy(); io.shutdownNow(); }
 

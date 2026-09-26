@@ -2,6 +2,18 @@
 
 All notable changes to Sift are documented here. Versions are tagged `vX.Y`.
 
+## [1.13] — 2026-09-26
+### Added
+- **The folder you're looking at refreshes itself.** Files copied in or out, renamed or
+  deleted — by Sift, another app, or a PC over USB — show up without pull-to-refresh.
+  - Local folders are watched (`FileObserver`), so changes land within ~0.3 s; bursts
+    such as a large copy are coalesced into one re-list.
+  - A light poll backs this up (local 4 s, root 5 s, network shares 10 s), since writes
+    that bypass the FUSE layer raise no event and remote backends have nothing to watch.
+  - Only changed rows update: scroll position, thumbnails and the current selection are
+    kept, and selected items that vanished are dropped. Only the visible tab watches;
+    other tabs catch up the moment you switch to them or return to the app.
+
 ## [1.12] — 2026-08-29
 ### Added
 - **Pop out an image into a floating window.** "Pop out" on any image — in the
