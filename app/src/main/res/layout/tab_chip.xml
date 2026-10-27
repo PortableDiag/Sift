@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="wrap_content"
     android:layout_height="36dp"
     android:layout_marginStart="3dp"
@@ -18,7 +19,7 @@
         android:maxLines="1"
         android:ellipsize="end"
         android:textSize="13sp"
-        android:textColor="?attr/colorOnSurface"/>
+        android:textColor="@color/tab_chip_content"/>
 
     <ImageView
         android:id="@+id/tabClose"
@@ -27,5 +28,6 @@
         android:layout_marginStart="4dp"
         android:padding="4dp"
         android:src="@drawable/ic_close"
+        app:tint="@color/tab_chip_content"
         android:background="?attr/selectableItemBackgroundBorderless"/>
 </LinearLayout>

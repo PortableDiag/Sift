@@ -17,8 +17,8 @@ android {
         applicationId "com.sift.explorer"
         minSdk 26
         targetSdk 35
-        versionCode 14
-        versionName "1.13"
+        versionCode 15
+        versionName "1.14"
         vectorDrawables.useSupportLibrary = true
     }
 
@@ -99,4 +99,9 @@ dependencies {
 
     // FTP / FTPS
     implementation 'commons-net:commons-net:3.10.0'
+
+    testImplementation 'junit:junit:4.13.2'
+    // android.jar stubs org.json with methods that throw; the real one lets the router's actual
+    // responses be asserted on (same as Lull).
+    testImplementation 'org.json:json:20231013'
 }

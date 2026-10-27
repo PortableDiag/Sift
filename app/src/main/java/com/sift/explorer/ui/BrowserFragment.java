@@ -31,6 +31,7 @@ import com.sift.explorer.fs.FileOps;
 import com.sift.explorer.fs.FileSystem;
 import com.sift.explorer.fs.LocalFileSystem;
 import com.sift.explorer.util.MimeUtils;
+import com.sift.explorer.util.Staging;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -543,27 +544,12 @@ public class BrowserFragment extends Fragment implements FileAdapter.Listener {
     private void openExternal(FileItem item, boolean forcePicker) {
         final String mime = MimeUtils.mimeType(item);
         final String typeKey = MimeUtils.categoryOf(item).name();
-        final String typeLabel = typeLabel(item);
+        final String typeLabel = MimeUtils.typeLabel(item);
         final com.sift.explorer.util.DefaultApps defaults = new com.sift.explorer.util.DefaultApps(requireContext());
         withLocalCopy(item, file -> {
             if (forcePicker) OpenWith.picker(requireActivity(), file, mime, typeKey, typeLabel, defaults);
             else OpenWith.open(requireActivity(), file, mime, typeKey, typeLabel, defaults);
         });
-    }
-
-    private String typeLabel(FileItem item) {
-        switch (MimeUtils.categoryOf(item)) {
-            case VIDEO: return "video files";
-            case AUDIO: return "audio files";
-            case PDF: return "PDF files";
-            case DOC: return "documents";
-            case ARCHIVE: return "archives";
-            case IMAGE: return "images";
-            default: {
-                String e = item.getExtension();
-                return e.isEmpty() ? "these files" : "." + e + " files";
-            }
-        }
     }
 
     interface FileCb { void run(File f); }
@@ -574,7 +560,7 @@ public class BrowserFragment extends Fragment implements FileAdapter.Listener {
         if (local != null) { cb.run(local); return; }
         final File dir = stagingDir(item);
         dir.mkdirs();
-        clearDir(dir); // avoid serving a stale copy
+        Staging.clear(dir); // avoid serving a stale copy
         final File cache = new File(dir, item.name);
         android.app.ProgressDialog pd = showBusy("Opening " + item.name + "…");
         LocalFileSystem cacheFs = new LocalFileSystem(requireContext().getCacheDir().getAbsolutePath(), "cache");
@@ -589,37 +575,9 @@ public class BrowserFragment extends Fragment implements FileAdapter.Listener {
         });
     }
 
-    /**
-     * The cache directory a remote or root file is staged into — one per source file, keyed by
-     * its filesystem and path.
-     *
-     * <p>{@link OpenWith} works out which folder a file belongs to by listing the parent of the
-     * File it is handed. Staging everything into one flat directory therefore offered every
-     * previously-opened file to the player as a sibling of this one. A directory per source file
-     * holds exactly one file, so the player falls back to single-file playback — the honest
-     * answer for a share whose other files we have not downloaded. It also stops two shares
-     * holding the same filename from overwriting each other's copy.
-     */
+    /** The cache directory a remote or root file is staged into — see {@link Staging}. */
     private File stagingDir(FileItem item) {
-        String key = (item.fs == null ? "" : item.fs.getId()) + "\n" + item.path;
-        return new File(requireContext().getCacheDir(), "open/" + shortHash(key));
-    }
-
-    private static String shortHash(String s) {
-        try {
-            byte[] d = java.security.MessageDigest.getInstance("SHA-1")
-                    .digest(s.getBytes(java.nio.charset.StandardCharsets.UTF_8));
-            StringBuilder sb = new StringBuilder(16);
-            for (int i = 0; i < 8; i++) sb.append(String.format("%02x", d[i]));
-            return sb.toString();
-        } catch (Exception e) {
-            return Integer.toHexString(s.hashCode());
-        }
-    }
-
-    private static void clearDir(File dir) {
-        File[] stale = dir.listFiles();
-        if (stale != null) for (File f : stale) f.delete();
+        return Staging.dirFor(requireContext(), item);
     }
 
     // ---- selection -------------------------------------------------------

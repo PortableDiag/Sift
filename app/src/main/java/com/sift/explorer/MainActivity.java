@@ -25,7 +25,6 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 import androidx.viewpager2.widget.ViewPager2;
 
-import com.google.android.material.button.MaterialButtonToggleGroup;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.materialswitch.MaterialSwitch;
 import com.sift.explorer.fs.Bookmark;
@@ -41,13 +40,20 @@ import com.sift.explorer.ui.DiskUsageActivity;
 import com.sift.explorer.ui.Tab;
 import com.sift.explorer.ui.TabManager;
 import com.sift.explorer.ui.TabPagerAdapter;
+import com.sift.explorer.ui.PaletteDialog;
+import com.sift.explorer.util.Palettes;
 import com.sift.explorer.util.ThemePrefs;
+import com.sift.explorer.api.ApiPrefs;
+import com.sift.explorer.api.ApiSettingsDialog;
+import com.sift.explorer.api.ApiStatus;
+import com.sift.explorer.api.ApiUi;
+import com.sift.explorer.fs.FileItem;
 
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class MainActivity extends AppCompatActivity implements BrowserHost {
+public class MainActivity extends AppCompatActivity implements BrowserHost, ApiUi {
 
     private ViewPager2 pager;
     private LinearLayout tabStrip;
@@ -65,7 +71,7 @@ public class MainActivity extends AppCompatActivity implements BrowserHost {
     private boolean askedPermission = false;
 
     @Override protected void onCreate(Bundle savedInstanceState) {
-        setTheme(ThemePrefs.themeRes(this));
+        ThemePrefs.applyTheme(this);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
@@ -104,7 +110,11 @@ public class MainActivity extends AppCompatActivity implements BrowserHost {
 
         rebuildStrip();
         rebuildDrawer();
+        ApiUi.Registry.set(this);
+        ApiStatus.addListener(apiListener);
     }
+
+    private final Runnable apiListener = () -> main.post(this::updateApiState);
 
     @Override protected void onResume() {
         super.onResume();
@@ -136,20 +146,31 @@ public class MainActivity extends AppCompatActivity implements BrowserHost {
 
     private void setupDrawerControls() {
         MaterialSwitch dark = findViewById(R.id.darkSwitch);
+        // The prefs are the truth. Restored view state would re-check the old value after a
+        // recreate and fire the listener, undoing a change the API (or a palette) just made.
+        dark.setSaveEnabled(false);
         dark.setChecked(ThemePrefs.isDark(this));
         dark.setOnCheckedChangeListener((b, checked) -> {
             if (checked == ThemePrefs.isDark(this)) return;
             ThemePrefs.setDark(this, checked); // triggers recreate via night-mode change
         });
+        // Only Material You, Ocean and Terminal have a light and a dark form; the rest are one look.
+        Palettes.Palette pal = ThemePrefs.palette(this);
+        dark.setEnabled(pal.followsMode);
+        dark.setText(pal.followsMode ? "Dark mode" : "Dark mode (set by " + pal.name + ")");
 
-        MaterialButtonToggleGroup accent = findViewById(R.id.accentGroup);
-        accent.check(ThemePrefs.GREEN.equals(ThemePrefs.accent(this)) ? R.id.btnAccentGreen : R.id.btnAccentBlue);
-        accent.addOnButtonCheckedListener((group, checkedId, isChecked) -> {
-            if (!isChecked) return;
-            chooseAccent(checkedId == R.id.btnAccentGreen ? ThemePrefs.GREEN : ThemePrefs.BLUE);
+        ((TextView) findViewById(R.id.themeName)).setText(pal.name);
+        findViewById(R.id.themeRow).setOnClickListener(v ->
+                PaletteDialog.show(this, ThemePrefs.palette(this).name, this::choosePalette));
+
+        findViewById(R.id.apiRow).setOnClickListener(v -> {
+            drawer.closeDrawers();
+            ApiSettingsDialog.show(this, this::updateApiState);
         });
+        updateApiState();
 
         MaterialSwitch bin = findViewById(R.id.binSwitch);
+        bin.setSaveEnabled(false);
         bin.setChecked(ThemePrefs.recycleBin(this));
         bin.setOnCheckedChangeListener((b, checked) -> ThemePrefs.setRecycleBin(this, checked));
         findViewById(R.id.recycleBinRow).setOnClickListener(v -> openRecycleBin());
@@ -232,10 +253,17 @@ public class MainActivity extends AppCompatActivity implements BrowserHost {
         if (f instanceof BrowserFragment) ((BrowserFragment) f).refresh();
     }
 
-    private void chooseAccent(String accent) {
-        if (accent.equals(ThemePrefs.accent(this))) return;
-        ThemePrefs.setAccent(this, accent);
-        recreate();
+    private void choosePalette(String name) {
+        if (name.equals(ThemePrefs.palette(this).name)) return;
+        int before = ThemePrefs.nightMode(this);
+        ThemePrefs.setPalette(this, name);
+        // A night-mode change recreates every activity by itself; otherwise do it here.
+        if (ThemePrefs.nightMode(this) == before) recreate();
+    }
+
+    private void updateApiState() {
+        ((TextView) findViewById(R.id.apiState)).setText(
+                ApiStatus.running() ? ApiStatus.address() : ApiPrefs.enabled(this) ? "Starting…" : "Off");
     }
 
     // ---- tab strip -------------------------------------------------------
@@ -349,8 +377,8 @@ public class MainActivity extends AppCompatActivity implements BrowserHost {
     /**
      * DrawerLayout paints the status-bar region with its own scrim (default: the theme's
      * colorPrimaryDark, which Material3 leaves light → the "baby blue"/neon strip). Override it
-     * with colorTopBar so the very top matches the tab bar, and flip the status-bar icons to
-     * stay legible against it.
+     * with colorTopBar so the very top matches the tab bar, and flip the status- and
+     * navigation-bar icons to stay legible against the palette.
      */
     private void applyTopBarColor() {
         int c = resolveColor(R.attr.colorTopBar);
@@ -360,6 +388,11 @@ public class MainActivity extends AppCompatActivity implements BrowserHost {
         int flags = dec.getSystemUiVisibility();
         if (lightBar) flags |= View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
         else flags &= ~View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
+        // Navigation-bar icons follow the palette's background, not the system mode.
+        boolean lightNav = androidx.core.graphics.ColorUtils.calculateLuminance(
+                resolveColor(android.R.attr.colorBackground)) > 0.5;
+        if (lightNav) flags |= View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR;
+        else flags &= ~View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR;
         dec.setSystemUiVisibility(flags);
     }
 
@@ -468,5 +501,42 @@ public class MainActivity extends AppCompatActivity implements BrowserHost {
         super.onBackPressed();
     }
 
-    @Override protected void onDestroy() { super.onDestroy(); io.shutdownNow(); }
+    // ---- ApiUi: what the local API asks of this screen ----------------------
+
+    @Override public void selectTab(int tabId) {
+        int idx = tabs.indexOf(tabId);
+        if (idx >= 0) pager.setCurrentItem(idx, true);
+    }
+
+    @Override public void navigateTab(int tabId, FileItem dir) {
+        Fragment f = getSupportFragmentManager().findFragmentByTag("f" + tabId);
+        if (f instanceof BrowserFragment) {
+            ((BrowserFragment) f).open(dir);
+        } else {
+            Tab t = tabs.byId(tabId);
+            if (t == null) return;
+            t.back.push(t.path);
+            t.path = dir.path;
+            t.title = t.fs.isRoot(dir.path) ? t.fs.getDisplayName() : dir.name;
+        }
+        rebuildStrip();
+    }
+
+    @Override public int currentTabId() {
+        int pos = pager.getCurrentItem();
+        return pos >= 0 && pos < tabs.count() ? tabs.at(pos).id : -1;
+    }
+
+    @Override public void refreshFromApi() {
+        rebuildDrawer();
+        ((MaterialSwitch) findViewById(R.id.binSwitch)).setChecked(ThemePrefs.recycleBin(this));
+        updateApiState();
+    }
+
+    @Override protected void onDestroy() {
+        super.onDestroy();
+        ApiUi.Registry.clear(this);
+        ApiStatus.removeListener(apiListener);
+        io.shutdownNow();
+    }
 }

@@ -54,7 +54,7 @@ public class DiskUsageActivity extends AppCompatActivity implements DiskUsageVie
     }
 
     @Override protected void onCreate(Bundle s) {
-        setTheme(ThemePrefs.themeRes(this));
+        ThemePrefs.applyTheme(this);
         super.onCreate(s);
         setContentView(R.layout.activity_disk_usage);
 

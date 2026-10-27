@@ -93,7 +93,7 @@
             android:layout_gravity="bottom|end"
             android:layout_margin="16dp"
             android:src="@drawable/ic_newfolder"
-            app:tint="@android:color/white"/>
+            app:tint="?attr/colorOnPrimaryContainer"/>
 
         <LinearLayout
             android:id="@+id/selectionBar"

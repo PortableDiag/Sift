@@ -57,7 +57,46 @@ credentials are never written to disk in plaintext.
   app, or a PC over USB) appear without refreshing. Local folders update instantly via
   a filesystem watch; root and network folders are re-checked every 5–10 s while visible.
 - Breadcrumb path bar, in-folder search, pull-to-refresh.
-- Material 3 design, light/dark, edge-to-edge.
+- **All 17 house palettes** — drawer › Theme: Material You (wallpaper colours, the
+  default), Ocean, Terminal, Trellis, Graphite, Blueprint, Futuristic, Neon, SynthWave,
+  White Glow, Silkscreen, Sticky Notes, Amber Terminal, Phosphor Green, Phosphor P31, Zoro,
+  Nebula. Material You, Ocean and Terminal follow the Dark mode switch; the rest are one
+  look each. The mono palettes set every font in monospace. Material 3, edge-to-edge,
+  status/navigation-bar icons follow the palette.
+- **Local API** — everything above, over HTTP on the phone (below).
+
+## The local API
+**Sift can be driven by a script or an agent.** Drawer › **Local API** › switch it on; Sift
+generates a key and shows the address. Off until you turn it on.
+
+```bash
+adb forward tcp:8791 tcp:8791                       # from a computer
+curl -s -H "X-API-Key: $KEY" 127.0.0.1:8791/api/docs           # the full reference
+curl -s -H "X-API-Key: $KEY" "127.0.0.1:8791/api/files?path=/storage/emulated/0/Download&sort=date&desc=1"
+curl -s -H "X-API-Key: $KEY" -T song.mp3 "127.0.0.1:8791/api/files/content?path=/storage/emulated/0/Music/song.mp3"
+curl -s -H "X-API-Key: $KEY" -d '{"fs":"<nas-id>","paths":["smb://nas/media/a.mkv"],"dest":"/storage/emulated/0/Movies","dest_fs":"local","wait":true}' 127.0.0.1:8791/api/files/copy
+curl -s -H "X-API-Key: $KEY" -X PATCH -d '{"palette":"Zoro"}' 127.0.0.1:8791/api/settings
+```
+
+| | |
+|---|---|
+| **Files** | list (sort, hidden, filter, paging), stat, download, upload, new folder / file, rename, delete (honours the Recycle Bin), properties, disk usage — on local, root and every saved connection |
+| **Jobs** | copy, move, zip, extract across any two backends; progress and cancel, or `"wait": true` |
+| **Connections** | list, add, edit, delete SMB / SFTP / FTP / FTPS — passwords and keys are write-only |
+| **Bookmarks · Recycle Bin** | list, add, remove; list, restore, delete forever, empty |
+| **Screen** | open, navigate, switch and close tabs; open a file as a tap would (or Open with… / Open as text); share sheet; pop-out window |
+| **Settings** | palette, dark mode, Recycle Bin, default sort; the house palette list; forget an "always open with" app |
+
+- **Bound to `127.0.0.1`** unless *Allow access from the network* is on, which says what it
+  changes. **The key is generated**, compared in constant time; *New key* revokes the old one.
+  Everything but `GET /api/health` without it is a `401`.
+- Runs in its own foreground service whose notification names the address and has **Stop**;
+  comes back after a reboot only if it was on.
+- **It is a second pair of hands, not new features**: every route goes through the same code
+  the screens use. Open and share need Sift on screen — Android drops a window from an app
+  that isn't — so off screen they answer `409` saying so, never a silent `200`.
+- `GET /api/docs` serves the whole reference, so an agent needs the port and the key, nothing
+  else. PhoneAPI uses this as Sift's provider interface.
 
 ## Build
 Requirements: JDK 17, Android SDK (platform 35, build-tools 34.0.0).
@@ -68,6 +107,11 @@ export ANDROID_HOME=/path/to/android-sdk
 ./gradlew :app:assembleRelease
 # -> app/build/outputs/apk/release/app-release.apk
 ```
+
+### Palettes
+`res/values*/palettes.xml` and `util/Palettes.java` are generated from the house palettes
+(ProjectForge `palettes.toml`). When they change, `pf gate` says so; regenerate with
+`python3 tools/palettes.py`, then `pf palette apply . --done`.
 
 ### Signing
 Release builds are signed with credentials read from `keystore.properties` at the

@@ -79,6 +79,22 @@ public class MimeUtils {
         return "application/octet-stream";
     }
 
+    /** How the "always use this app" choice names the type ("video files", ".srt files"). */
+    public static String typeLabel(FileItem item) {
+        switch (categoryOf(item)) {
+            case VIDEO: return "video files";
+            case AUDIO: return "audio files";
+            case PDF: return "PDF files";
+            case DOC: return "documents";
+            case ARCHIVE: return "archives";
+            case IMAGE: return "images";
+            default: {
+                String e = item.getExtension();
+                return e.isEmpty() ? "these files" : "." + e + " files";
+            }
+        }
+    }
+
     private static Set<String> set(String... xs) {
         Set<String> s = new HashSet<>();
         for (String x : xs) s.add(x);

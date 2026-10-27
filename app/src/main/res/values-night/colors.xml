@@ -14,20 +14,5 @@
     <color name="outline">#3A3E46</color>
     <color name="top_bar">#000000</color>
 
-    <color name="crumb_active">#AEC6FF</color>
-    <color name="crumb_inactive">#8A9099</color>
 
-    <!-- Terminal (90s hacker green) accent — dark variant -->
-    <color name="term_primary">#33FF77</color>
-    <color name="term_on_primary">#00210C</color>
-    <color name="term_primary_container">#00391B</color>
-    <color name="term_on_primary_container">#79FFA3</color>
-    <color name="term_secondary">#79C98F</color>
-    <color name="term_background">#000300</color>
-    <color name="term_surface">#06120A</color>
-    <color name="term_surface_variant">#11241A</color>
-    <color name="term_surface_container">#0B1B11</color>
-    <color name="term_on_surface">#4DFF85</color>
-    <color name="term_on_surface_variant">#37B45F</color>
-    <color name="term_outline">#1E5B34</color>
 </resources>

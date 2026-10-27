@@ -2,6 +2,28 @@
 
 All notable changes to Sift are documented here. Versions are tagged `vX.Y`.
 
+## [1.14] — 2026-10-27
+### Added
+- **Local API.** Drawer › Local API: everything Sift does, over HTTP on the phone, for a
+  script or an agent (and for PhoneAPI, which pairs agents and holds their permissions).
+  Files on every backend (list, stat, download, upload, mkdir, new file, rename, delete,
+  properties, disk usage), copy / move / zip / extract as cancellable jobs, connections
+  (secrets write-only), bookmarks, Recycle Bin, tabs, open / share / pop-out, settings.
+  Off by default; `127.0.0.1` unless network access is switched on; generated key;
+  `GET /api/docs` is the full reference. Port 8791.
+- **All 17 house palettes**, from drawer › Theme, each with a swatch: Material You (the
+  default on a new install), Ocean, Terminal, Trellis, Graphite, Blueprint, Futuristic,
+  Neon, SynthWave, White Glow, Silkscreen, Sticky Notes, Amber Terminal, Phosphor Green,
+  Phosphor P31, Zoro, Nebula. Saved by name. Upgrading keeps your Ocean or Terminal.
+### Changed
+- Ocean and Terminal now use the house colours exactly (light forms included).
+- The dark mode switch is greyed out for palettes that are one look.
+- Navigation-bar icons follow the palette; the active tab and the new-folder button use the
+  palette's own text colour (no white on Zoro's green).
+### Fixed
+- Changing dark mode from outside the drawer could be undone when the screen was rebuilt
+  (the switch restored its old state and wrote it back).
+
 ## [1.13] — 2026-09-26
 ### Added
 - **The folder you're looking at refreshes itself.** Files copied in or out, renamed or

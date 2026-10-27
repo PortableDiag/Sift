@@ -60,7 +60,7 @@ public class TextViewerActivity extends AppCompatActivity {
     }
 
     @Override protected void onCreate(Bundle s) {
-        setTheme(com.sift.explorer.util.ThemePrefs.themeRes(this));
+        com.sift.explorer.util.ThemePrefs.applyTheme(this);
         super.onCreate(s);
         setContentView(R.layout.activity_text_viewer);
 

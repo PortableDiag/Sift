@@ -251,6 +251,40 @@
             android:text="Use Recycle Bin"
             android:textColor="?attr/colorOnSurface"/>
 
+        <LinearLayout
+            android:id="@+id/apiRow"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingStart="20dp"
+            android:paddingEnd="20dp"
+            android:background="?attr/selectableItemBackground"
+            android:clickable="true"
+            android:focusable="true">
+
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_api"/>
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="16dp"
+                android:text="Local API"
+                android:textSize="15sp"
+                android:textColor="?attr/colorOnSurface"/>
+
+            <TextView
+                android:id="@+id/apiState"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="13sp"
+                android:textColor="?attr/colorOnSurfaceVariant"/>
+        </LinearLayout>
+
         <TextView
             style="@style/DrawerSection"
             android:text="Appearance"/>
@@ -266,35 +300,39 @@
             android:text="Dark mode"
             android:textColor="?attr/colorOnSurface"/>
 
-        <com.google.android.material.button.MaterialButtonToggleGroup
-            android:id="@+id/accentGroup"
-            xmlns:app="http://schemas.android.com/apk/res-auto"
+        <LinearLayout
+            android:id="@+id/themeRow"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingStart="16dp"
-            android:paddingEnd="16dp"
-            android:paddingTop="6dp"
-            android:paddingBottom="20dp"
-            app:singleSelection="true"
-            app:selectionRequired="true">
+            android:layout_height="52dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingStart="20dp"
+            android:paddingEnd="20dp"
+            android:background="?attr/selectableItemBackground"
+            android:clickable="true"
+            android:focusable="true"
+            android:layout_marginBottom="20dp">
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnAccentBlue"
-                style="?attr/materialButtonOutlinedStyle"
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_palette"/>
+
+            <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:maxLines="1"
-                android:text="Ocean"/>
+                android:layout_marginStart="16dp"
+                android:text="Theme"
+                android:textSize="15sp"
+                android:textColor="?attr/colorOnSurface"/>
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnAccentGreen"
-                style="?attr/materialButtonOutlinedStyle"
-                android:layout_width="0dp"
+            <TextView
+                android:id="@+id/themeName"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:maxLines="1"
-                android:text="Terminal"/>
-        </com.google.android.material.button.MaterialButtonToggleGroup>
+                android:textSize="13sp"
+                android:textColor="?attr/colorOnSurfaceVariant"/>
+        </LinearLayout>
     </LinearLayout>
 </androidx.drawerlayout.widget.DrawerLayout>

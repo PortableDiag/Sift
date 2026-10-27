@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The active chip sits on colorPrimaryContainer, so its text and close icon use the palette's
+     colour for that (never white on Zoro's green); the rest sit on the bar. -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_activated="true" android:color="?attr/colorOnPrimaryContainer"/>
+    <item android:color="?attr/colorOnSurface"/>
+</selector>
