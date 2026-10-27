@@ -2,6 +2,11 @@
 
 All notable changes to Sift are documented here. Versions are tagged `vX.Y`.
 
+## [1.15] — 2026-10-27
+### Changed
+- **Local API port is now 8802** (was 8791, which PermaFrost also uses). A port you set
+  yourself in drawer › Local API is kept.
+
 ## [1.14] — 2026-10-27
 ### Added
 - **Local API.** Drawer › Local API: everything Sift does, over HTTP on the phone, for a

@@ -70,12 +70,12 @@ credentials are never written to disk in plaintext.
 generates a key and shows the address. Off until you turn it on.
 
 ```bash
-adb forward tcp:8791 tcp:8791                       # from a computer
-curl -s -H "X-API-Key: $KEY" 127.0.0.1:8791/api/docs           # the full reference
-curl -s -H "X-API-Key: $KEY" "127.0.0.1:8791/api/files?path=/storage/emulated/0/Download&sort=date&desc=1"
-curl -s -H "X-API-Key: $KEY" -T song.mp3 "127.0.0.1:8791/api/files/content?path=/storage/emulated/0/Music/song.mp3"
-curl -s -H "X-API-Key: $KEY" -d '{"fs":"<nas-id>","paths":["smb://nas/media/a.mkv"],"dest":"/storage/emulated/0/Movies","dest_fs":"local","wait":true}' 127.0.0.1:8791/api/files/copy
-curl -s -H "X-API-Key: $KEY" -X PATCH -d '{"palette":"Zoro"}' 127.0.0.1:8791/api/settings
+adb forward tcp:8802 tcp:8802                       # from a computer
+curl -s -H "X-API-Key: $KEY" 127.0.0.1:8802/api/docs           # the full reference
+curl -s -H "X-API-Key: $KEY" "127.0.0.1:8802/api/files?path=/storage/emulated/0/Download&sort=date&desc=1"
+curl -s -H "X-API-Key: $KEY" -T song.mp3 "127.0.0.1:8802/api/files/content?path=/storage/emulated/0/Music/song.mp3"
+curl -s -H "X-API-Key: $KEY" -d '{"fs":"<nas-id>","paths":["smb://nas/media/a.mkv"],"dest":"/storage/emulated/0/Movies","dest_fs":"local","wait":true}' 127.0.0.1:8802/api/files/copy
+curl -s -H "X-API-Key: $KEY" -X PATCH -d '{"palette":"Zoro"}' 127.0.0.1:8802/api/settings
 ```
 
 | | |

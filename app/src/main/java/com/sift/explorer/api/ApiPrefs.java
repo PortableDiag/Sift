@@ -18,8 +18,8 @@ public final class ApiPrefs {
     private static final String K_PORT = "api_port";
     private static final String K_LAN = "api_lan";
 
-    /** Sift's port: clear of Lull 8787, TextX 8788, DialX 8789, NotifX 8790 and the 879x above. */
-    public static final int DEFAULT_PORT = 8791;
+    /** Sift's port: clear of the sibling apps on 8787–8799 (PermaFrost 8791, TrellisBridge 8792) and 8800–8801. */
+    public static final int DEFAULT_PORT = 8802;
     public static final int MIN_PORT = 1024, MAX_PORT = 65535;
 
     /** 24 bytes of SecureRandom, hex — long enough that guessing it is not a strategy. */
