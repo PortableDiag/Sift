@@ -2,6 +2,11 @@
 
 All notable changes to Sift are documented here. Versions are tagged `vX.Y`.
 
+## [1.15.3] — 2026-10-27
+### Fixed
+- An update of Sift no longer leaves the local API off until Sift is opened: if it was on,
+  it starts again straight after the update.
+
 ## [1.15.2] — 2026-10-27
 ### Fixed
 - PhoneAPI's key screen has side margins, and when PhoneAPI already has a key its
