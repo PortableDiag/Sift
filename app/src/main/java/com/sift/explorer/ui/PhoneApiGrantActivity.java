@@ -43,16 +43,20 @@ public class PhoneApiGrantActivity extends AppCompatActivity {
 
         StringBuilder body = new StringBuilder(getString(R.string.phoneapi_body));
         if (!ApiPrefs.enabled(this)) body.append(' ').append(getString(R.string.phoneapi_turns_on));
-        if (PhoneApiAccess.grant(this) != null) body.append(' ').append(getString(R.string.phoneapi_replaces));
+        PhoneApi.Grant current = PhoneApiAccess.grant(this);
+        if (current != null) body.append(' ').append(getString(R.string.phoneapi_replaces));
         ((TextView) findViewById(R.id.body)).setText(body);
 
         MaterialSwitch see = findViewById(R.id.see);
         MaterialSwitch change = findViewById(R.id.change);
         MaterialButton allow = findViewById(R.id.allow);
-        // Everything starts off (and stays off on a recreate), and a key that may do nothing isn't worth minting.
+        // Off for a first key, as the current key has them for a new one; a key that may do nothing isn't worth minting.
         see.setSaveEnabled(false);
         change.setSaveEnabled(false);
+        see.setChecked(current != null && current.see);
+        change.setChecked(current != null && current.change);
         Runnable sync = () -> allow.setEnabled(see.isChecked() || change.isChecked());
+        sync.run();
         see.setOnCheckedChangeListener((b, on) -> sync.run());
         change.setOnCheckedChangeListener((b, on) -> sync.run());
 

@@ -2,6 +2,11 @@
 
 All notable changes to Sift are documented here. Versions are tagged `vX.Y`.
 
+## [1.15.2] — 2026-10-27
+### Fixed
+- PhoneAPI's key screen has side margins, and when PhoneAPI already has a key its
+  See and Change switches start where that key has them.
+
 ## [1.15.1] — 2026-10-27
 ### Added
 - **PhoneAPI handshake.** PhoneAPI's release build can ask for its own key: Sift asks
