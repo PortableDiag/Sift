@@ -44,6 +44,13 @@ public class ApiResponse {
         return r == null ? "OK" : r;
     }
 
+    /** The same response with one more header. */
+    public ApiResponse withHeader(String name, String value) {
+        Map<String, String> h = new HashMap<>(extraHeaders);
+        h.put(name, value);
+        return new ApiResponse(status, contentType, body, stream, streamLength, h);
+    }
+
     /** The body as text, for tests. */
     public String text() { return new String(body, StandardCharsets.UTF_8); }
 

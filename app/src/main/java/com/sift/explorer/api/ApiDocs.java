@@ -74,6 +74,8 @@ public final class ApiDocs {
             "  `adb forward tcp:8802 tcp:8802`.",
             "- Every route but `GET /api/health` needs the key: `X-API-Key: <key>` or",
             "  `Authorization: Bearer <key>`. A new key in the app invalidates the old one at once.",
+            "- PhoneAPI gets its own key through its handshake, with two switches the owner sets:",
+            "  See (every GET) and Change (everything else). A request it may not make is a 403.",
             "- JSON in, JSON out (UTF-8). Uploads and downloads are raw bytes.",
             "- An error is `{\"error\": \"...\", \"hint\": \"...\"}` with a real status: 400 your request,",
             "  401 key, 403 Android or a permission said no, 404 no such thing, 405 wrong method,",

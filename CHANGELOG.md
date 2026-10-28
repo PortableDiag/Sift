@@ -2,6 +2,16 @@
 
 All notable changes to Sift are documented here. Versions are tagged `vX.Y`.
 
+## [1.15.1] — 2026-10-27
+### Added
+- **PhoneAPI handshake.** PhoneAPI's release build can ask for its own key: Sift asks
+  "Let PhoneAPI use Sift?" with two switches, both off: **See** (every GET) and **Change**
+  (everything else, refused with 403 when off). Allow switches the local API on. A new
+  handshake replaces the old key; the key goes when PhoneAPI is uninstalled or is no
+  longer its pinned release build. Your own key is untouched.
+- Every API answer carries `X-PhoneAPI-Proof` when PhoneAPI sends a challenge, so it can
+  tell Sift from another app on port 8802.
+
 ## [1.15] — 2026-10-27
 ### Changed
 - **Local API port is now 8802** (was 8791, which PermaFrost also uses). A port you set

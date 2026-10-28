@@ -65,7 +65,10 @@ public class ApiService extends Service {
 
         String address = ApiPrefs.bindAddress(this);
         int port = ApiPrefs.port(this);
-        ApiRouter router = new ApiRouter(new SiftBackend(this), () -> ApiPrefs.key(this));
+        // PhoneAPI's key goes if PhoneAPI has gone, or is no longer its pinned release build.
+        PhoneApiAccess.revokeIfGone(this);
+        ApiRouter router = new ApiRouter(new SiftBackend(this), () -> ApiPrefs.key(this),
+                () -> PhoneApiAccess.grant(this));
         ApiServer api = new ApiServer(router, address, port);
 
         // Foreground first: a service that binds before posting its notification can be killed with the socket open.

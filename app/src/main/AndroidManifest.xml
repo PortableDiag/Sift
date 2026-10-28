@@ -22,6 +22,8 @@
 
     <!-- See external apps that can view/open/share files (package visibility, API 30+). -->
     <queries>
+        <!-- Read PhoneAPI's signing certificate: its key handshake and key are pinned to it. -->
+        <package android:name="com.phoneapi.app"/>
         <intent>
             <action android:name="android.intent.action.VIEW"/>
             <data android:mimeType="*/*"/>
@@ -91,6 +93,28 @@
                 android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
                 android:value="Serves the user-enabled local HTTP API that lets a script on this device manage files"/>
         </service>
+
+        <!-- PhoneAPI asks for a key (its provider contract §3). The activity checks the
+             caller is PhoneAPI's release build before it shows anything. -->
+        <activity
+            android:name=".ui.PhoneApiGrantActivity"
+            android:exported="true"
+            android:excludeFromRecents="true">
+            <intent-filter>
+                <action android:name="com.phoneapi.action.GRANT_KEY"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+            </intent-filter>
+        </activity>
+
+        <!-- PhoneAPI uninstalled: its key goes with it. -->
+        <receiver
+            android:name=".api.PhoneApiGoneReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.PACKAGE_FULLY_REMOVED"/>
+                <data android:scheme="package"/>
+            </intent-filter>
+        </receiver>
 
         <receiver
             android:name=".api.BootReceiver"

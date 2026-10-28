@@ -42,22 +42,52 @@ public class ApiRouter {
 
     private final ApiBackend backend;
     private final Supplier<String> expectedKey;
+    private final Supplier<PhoneApi.Grant> phoneApi;
+
+    /** Who a request's key belongs to. */
+    private enum Caller { NOBODY, OWNER, PHONEAPI }
 
     public ApiRouter(ApiBackend backend, Supplier<String> expectedKey) {
-        this.backend = backend;
-        this.expectedKey = expectedKey;
+        this(backend, expectedKey, () -> null);
     }
 
+    public ApiRouter(ApiBackend backend, Supplier<String> expectedKey, Supplier<PhoneApi.Grant> phoneApi) {
+        this.backend = backend;
+        this.expectedKey = expectedKey;
+        this.phoneApi = phoneApi;
+    }
+
+    /** Every answer, errors and 401s too, carries PhoneAPI's proof once it holds a proof key. */
     public ApiResponse handle(ApiRequest r) {
+        ApiResponse out = route(r);
+        String challenge = PhoneApi.usableChallenge(r.header(PhoneApi.HEADER_CHALLENGE));
+        PhoneApi.Grant g = challenge == null ? null : phoneApi.get();
+        if (g == null) return out;
+        return out.withHeader(PhoneApi.HEADER_PROOF, PhoneApi.proof(g.proofKey, challenge));
+    }
+
+    private ApiResponse route(ApiRequest r) {
         try {
             if (r.method.equals("OPTIONS")) return ApiResponse.noContent();
             if (!r.path.equals("/api") && !r.path.startsWith("/api/")) {
                 return ApiResponse.error(404, "not an API path",
                         "everything this server answers lives under /api — GET /api/docs lists it");
             }
-            if (!OPEN_PATHS.contains(r.path) && !authorised(r)) {
-                return ApiResponse.error(401, "missing or invalid API key",
-                        "send it as the X-API-Key header, or Authorization: Bearer <key>");
+            if (!OPEN_PATHS.contains(r.path)) {
+                Caller who = caller(r);
+                if (who == Caller.NOBODY) {
+                    return ApiResponse.error(401, "missing or invalid API key",
+                            "send it as the X-API-Key header, or Authorization: Bearer <key>");
+                }
+                if (who == Caller.PHONEAPI) {
+                    PhoneApi.Grant g = phoneApi.get();
+                    boolean reading = r.method.equals("GET");
+                    if (g == null || (reading ? !g.see : !g.change)) {
+                        return ApiResponse.error(403, "PhoneAPI's key may not "
+                                        + (reading ? "see anything in" : "change anything in") + " Sift",
+                                "the owner chose what it may do; Get a key in PhoneAPI (Providers, Sift) asks again");
+                    }
+                }
             }
             return dispatch(r);
         } catch (ApiException e) {
@@ -72,19 +102,26 @@ public class ApiRouter {
         }
     }
 
+    /** The owner's key, PhoneAPI's key, or neither. */
+    private Caller caller(ApiRequest r) {
+        String offered = r.header("x-api-key");
+        if (offered == null) {
+            String auth = r.header("authorization");
+            if (auth == null) return Caller.NOBODY;
+            offered = auth.replaceFirst("(?i)^bearer\\s+", "").trim();
+        }
+        if (same(offered, expectedKey.get())) return Caller.OWNER;
+        PhoneApi.Grant g = phoneApi.get();
+        if (g != null && same(offered, g.key)) return Caller.PHONEAPI;
+        return Caller.NOBODY;
+    }
+
     /**
      * Constant-time comparison: the timing of a string compare leaks how much of a key is right,
      * and a local socket is exactly where an attacker can afford the millions of tries.
      */
-    private boolean authorised(ApiRequest r) {
-        String expected = expectedKey.get();
+    private static boolean same(String offered, String expected) {
         if (expected == null || expected.isEmpty()) return false;
-        String offered = r.header("x-api-key");
-        if (offered == null) {
-            String auth = r.header("authorization");
-            if (auth == null) return false;
-            offered = auth.replaceFirst("(?i)^bearer\\s+", "").trim();
-        }
         byte[] a = offered.getBytes(StandardCharsets.UTF_8);
         byte[] b = expected.getBytes(StandardCharsets.UTF_8);
         if (a.length != b.length) return false;
